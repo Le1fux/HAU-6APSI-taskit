@@ -11,6 +11,8 @@ repository, so it is versioned alongside the thing it describes.
 | [04-weekly-reports.md](04-weekly-reports.md) | a few lines a week | every week |
 | [05-demo-video.md](05-demo-video.md) | the recording, and its plan | the end |
 | [06-security-and-privacy.md](06-security-and-privacy.md) | what you checked before making this public | before your first push |
+| [07-reflection-journal.md](07-reflection-journal.md) | development reflection for M8A3 | m8a3 |
+| [08-midterm-reflection-journal.md](08-midterm-reflection-journal.md) | backend and integration reflection | midterm |
 
 Put images in `assets/`. A screenshot named `assets/screenshot.png` is referenced
 by the main README, and a README with an image reads as finished in a way one
