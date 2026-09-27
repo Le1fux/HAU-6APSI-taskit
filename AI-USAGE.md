@@ -1,52 +1,30 @@
-# AI usage
+# AI usage disclosure
 
-This project was built with AI assistance. This file is the record of it. It is
-graded as the finals badge, and it is worth 100 points.
+## Current record status
 
-Start it in week 1 and keep it up as you go. The commit history of this file is
-part of the evidence: a file written all at once the night before the deadline
-looks exactly like what it is.
+This repository has a general statement that AI assistance was used during
+project setup, frontend scaffolding, and documentation work. The repository does
+not contain a dated, per-use record with the prompts, outputs, decisions, and
+matching commit links needed to substantiate each use. This disclosure is
+therefore incomplete and must be reviewed by the project author before final
+submission.
 
-## 1. How I used AI
+No dates, prompts, tool names, commit links, authorship percentages, or AI error
+stories have been inferred or invented here. The author should add only details
+they can verify from their own records and the repository history.
 
-At least six entries. One per real use. Every entry needs a commit link.
+## Author completion checklist
 
-### YYYY-MM-DD - short title
-
-- **Tool:**
-- **What I asked for:**
-- **What it gave back:**
-- **What I kept, what I changed, and why:**
-- **Commit:** https://github.com/YOUR-USERNAME/YOUR-REPO/commit/SHA
-
-## 2. Where the AI got it wrong
-
-Three cases. Be specific. If you write that the AI was never wrong, this section
-scores zero.
-
-### Case 1 - short title
-
-- **What it gave me:**
-- **What was wrong with it:**
-- **What I did instead:**
-- **Commit:** https://github.com/YOUR-USERNAME/YOUR-REPO/commit/SHA
-
-## 3. Who wrote what
-
-At least a fifth of this project is code you wrote yourself. Name it, and explain
-it in your own words.
-
-> Group projects: give each member their own heading below, and use your GitHub
-> handle as the heading. You are graded on your own section.
-
-### Written by me
-
-- **File:**
-- **Commit:**
-- **What it does and why it is built this way:**
-
-### The AI-written part I understand best
-
-- **File:**
-- **Commit:**
-- **What it does and why we kept it:**
+- [ ] Record each actual AI use with its date, tool, request, useful output, and
+      what was kept or changed.
+- [ ] Link each entry to a real commit that contains the described work. Do not
+      invent a commit link for changes that are still uncommitted.
+- [ ] Record specific cases where AI output was wrong only if they actually
+      occurred and can be described accurately.
+- [ ] Identify code personally written and explain it in the author's own words.
+- [ ] Identify AI-assisted code the author understands and explain how it works.
+- [ ] Estimate any required authorship proportion only after reviewing the
+      actual code and course criteria.
+- [ ] Confirm the badge and exact disclosure format required by the course's
+      Finals Week 2 materials; those lesson files were not available in this
+      repository during the documentation audit.

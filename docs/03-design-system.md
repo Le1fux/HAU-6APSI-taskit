@@ -59,9 +59,9 @@ the page, cards, and text.
 | Surface | `surface` | Cards, header, and content panels | `#FFFFFF` | `bg-surface` |
 | Text | `text` | Headings and body text | `#172033` | `text-text` |
 
-The dark text token provides strong contrast on the background and surface. White
-text is used on the primary action colour. Focus rings stay visible and use the
-accent colour.
+Dark text is used on light backgrounds and surfaces; white text is used on
+primary actions. These are design choices, not a completed independent WCAG
+contrast audit. Focus rings are defined in the global stylesheet.
 
 ## Step C: Type scale
 
@@ -96,13 +96,13 @@ mobile layouts stack instead of relying on fixed widths.
 | Component | Level | Appears on | Main responsibility |
 | --- | --- | --- | --- |
 | `Header` | Organism | All screens | TaskIt logo and My Materials navigation |
-| Material card | Molecule | My Materials | Shows subject, title, question count, and link |
-| Material detail panel | Organism | Material Detail | Displays material content and key concept |
-| Practice question row | Molecule | Material Detail | Shows one practice question |
-| Quiz question card | Molecule | Quiz | Shows the current question and answer reveal control |
-| Progress bar | Atom | Quiz | Shows current quiz completion |
-| Result panel | Organism | Results | Shows score and completion feedback |
-| Attempt row | Molecule | Results | Shows a previous score and date |
+| Material card | Repeated layout | My Materials | Shows material title, content excerpt, and uploaded date |
+| Material detail panel | Page section | Material Detail | Displays stored material title and content |
+| Practice question row | Hardcoded layout | Material Detail | Displays one generic placeholder question |
+| Quiz question card | Page section | Quiz | Shows a hardcoded question, generic answer reveal, and self-grade controls |
+| Progress bar | Page element | Quiz | Shows position within the hardcoded three-question set |
+| Result panel | Page section | Results | Currently shows fixed sample score and feedback |
+| Attempt history rows | Placeholder layout | Results | Displays fixed sample attempt values, not saved attempts |
 
 Buttons and links include hover transitions and visible focus states. Cards use
 rounded corners, a white surface, a light border, and the shared soft shadow.
@@ -124,15 +124,15 @@ The layout is phone-first. Unprefixed Tailwind classes define the phone layout;
 Nothing relies on fixed pixel widths. Content uses full-width or max-width
 constraints, text can wrap, and controls remain usable at phone sizes.
 
-## Accessibility checklist
+## Accessibility checklist and verification status
 
 | Requirement | How TaskIt implements it | How to check it |
 | --- | --- | --- |
-| Contrast | Dark text is used on light surfaces; primary actions use white labels. | Check key text and action pairs with a WCAG contrast checker. |
+| Contrast | Dark text is used on light surfaces; primary actions use white labels. | Measure the rendered pairs with a WCAG contrast checker; this has not been recorded as complete. |
 | Semantic HTML | Uses `header`, `nav`, `main`, headings, links, forms, buttons, and lists. | Inspect the rendered markup. |
 | Labels | Form controls have associated labels or accessible placeholder context. | Activate each label and confirm the field receives focus. |
-| Keyboard navigation | Navigation and quiz actions use native links and buttons. | Complete the route flow without a mouse. |
-| Visible focus | Global `:focus-visible` styling provides a clear outline. | Tab through every interactive control. |
+| Keyboard navigation | Navigation and quiz actions use native links and buttons. | Complete and record the route flow without a mouse; not yet documented as tested. |
+| Visible focus | Global `:focus-visible` styling provides a clear outline. | Tab through and record every interactive control; not yet documented as tested. |
 | Not colour alone | Quiz grading uses text labels such as `Got it` and `Needs more practice`, not colour alone. | Review the screens in greyscale. |
 | Responsive content | Layouts stack and text wraps at narrow widths. | Check the app at 375px and desktop widths. |
 
@@ -143,6 +143,7 @@ materials, material detail, quiz, and results screens. The design system is
 implemented in `client/tailwind.config.js`, `client/src/index.css`, and
 `client/postcss.config.js`.
 
-Future iterations still need question editing and deletion, real persistence,
-full empty/loading/error states, a collapsible mobile menu, and screenshot
-exports for `docs/assets/`.
+Future iterations still need question editing and deletion, persistent mock data
+or an always-available API, complete quiz loading/error states, a collapsible
+mobile menu if required by the final design, manual accessibility verification,
+and screenshot exports for `docs/assets/`.

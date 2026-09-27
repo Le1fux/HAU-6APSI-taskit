@@ -95,7 +95,8 @@ imports an organism.
 
 ## Step D: Sanity check
 
-The main user task is: add study material, create questions, and quiz myself.
+The planned main user task is: add study material, create questions, and quiz
+myself. This is a design check, not a claim that the complete flow is implemented.
 
 1. Land on My Materials, the home base.
 2. Use Add Material to enter a title and paste in study material.
@@ -116,6 +117,9 @@ The main user task is: add study material, create questions, and quiz myself.
     materials or questions.
 
 ## State ownership check
+
+The following is the planned state ownership model. The current implementation
+does not yet lift question and attempt state into `App`.
 
 | State | Owner | Why |
 | --- | --- | --- |
@@ -142,8 +146,15 @@ that only matters during an active quiz.
 
 ## Implementation status
 
-The current scaffold already provides the four routes, shared Header, responsive
-Tailwind layout, quiz reveal and self-grading controls, progress bar, results
-view, and attempt-history placeholders. Material persistence, editable question
-management, and backend-backed state are planned for the next implementation
-increment.
+**Implemented:** four routes, shared Header, responsive Tailwind layout,
+materials list/create through the materials adapter, material detail loading,
+quiz answer reveal/self-grading/progress controls, and Results screen layout.
+
+**Known limitations:** the Materials form accepts a title only and sends empty
+content. Mock materials live in memory and reset on page reload. Material Detail
+and Quiz use hardcoded generic questions. Quiz state stays local to QuizPage;
+Results shows a fixed score, missed-question example, and attempt history.
+
+**Planned:** material content editing, question create/edit/delete, question
+storage, lifted or saved quiz attempts, real missed-question tracking, and
+dynamic results.
