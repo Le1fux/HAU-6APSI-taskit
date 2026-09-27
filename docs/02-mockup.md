@@ -2,10 +2,7 @@
 
 ## Wireframes and component breakdown
 
-**Name:** Leif Levinson C. Basilio
 **Course / Class Code:** 6APSI / 2240
-**Student Number:** 20974408
-**School Email:** lcbasilio2@student.hau.edu.ph
 **GitHub:** [Le1fux](https://github.com/Le1fux)
 
 ## Step A: Screen map

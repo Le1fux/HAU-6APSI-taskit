@@ -1,7 +1,7 @@
 import express from 'express'
 import cors from 'cors'
 import { pool } from './db/pool.js'
-import * as sightings from './sightingsRepo.js'
+import * as materials from './materialsRepo.js'
 
 const app = express()
 
@@ -40,66 +40,61 @@ app.get('/readyz', async (request, response) => {
 // browser form is for a fast, friendly message; this is for correctness.
 function validate(body) {
   const errors = []
-  const place = typeof body.place === 'string' ? body.place.trim() : ''
-  const description =
-    typeof body.description === 'string' ? body.description.trim() : ''
-  const spookiness = Number(body.spookiness)
+  const title = typeof body.title === 'string' ? body.title.trim() : ''
+  const content = typeof body.content === 'string' ? body.content.trim() : ''
 
-  if (!place) errors.push('place is required')
-  if (place.length > 120) errors.push('place must be 120 characters or fewer')
-  if (description.length > 2000) errors.push('description must be 2000 characters or fewer')
-  if (!Number.isInteger(spookiness) || spookiness < 1 || spookiness > 5) {
-    errors.push('spookiness must be a whole number from 1 to 5')
-  }
+  if (!title) errors.push('title is required')
+  if (title.length > 200) errors.push('title must be 200 characters or fewer')
+  if (content.length > 10000) errors.push('content must be 10000 characters or fewer')
 
-  return { errors, value: { place, description, spookiness } }
+  return { errors, value: { title, content } }
 }
 
-app.get('/api/sightings', async (request, response, next) => {
+app.get('/api/materials', async (request, response, next) => {
   try {
-    response.json(await sightings.getAll(pool))
+    response.json(await materials.getAll(pool))
   } catch (error) {
     next(error)
   }
 })
 
-app.get('/api/sightings/:id', async (request, response, next) => {
+app.get('/api/materials/:id', async (request, response, next) => {
   try {
-    const row = await sightings.getById(pool, request.params.id)
-    if (!row) return response.status(404).json({ error: 'Not found' })
-    response.json(row)
+    const material = await materials.getById(pool, request.params.id)
+    if (!material) return response.status(404).json({ error: 'Not found' })
+    response.json(material)
   } catch (error) {
     next(error)
   }
 })
 
-app.post('/api/sightings', async (request, response, next) => {
+app.post('/api/materials', async (request, response, next) => {
   const { errors, value } = validate(request.body ?? {})
   if (errors.length > 0) return response.status(400).json({ error: errors.join('; ') })
 
   try {
-    response.status(201).json(await sightings.create(pool, value))
+    response.status(201).json(await materials.create(pool, value))
   } catch (error) {
     next(error)
   }
 })
 
-app.put('/api/sightings/:id', async (request, response, next) => {
+app.put('/api/materials/:id', async (request, response, next) => {
   const { errors, value } = validate(request.body ?? {})
   if (errors.length > 0) return response.status(400).json({ error: errors.join('; ') })
 
   try {
-    const row = await sightings.update(pool, request.params.id, value)
-    if (!row) return response.status(404).json({ error: 'Not found' })
-    response.json(row)
+    const material = await materials.update(pool, request.params.id, value)
+    if (!material) return response.status(404).json({ error: 'Not found' })
+    response.json(material)
   } catch (error) {
     next(error)
   }
 })
 
-app.delete('/api/sightings/:id', async (request, response, next) => {
+app.delete('/api/materials/:id', async (request, response, next) => {
   try {
-    const removed = await sightings.remove(pool, request.params.id)
+    const removed = await materials.remove(pool, request.params.id)
     if (!removed) return response.status(404).json({ error: 'Not found' })
     response.status(204).end()
   } catch (error) {

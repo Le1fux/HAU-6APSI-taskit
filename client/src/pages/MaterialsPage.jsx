@@ -1,21 +1,40 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-
-const starterMaterials = [
-  { id: 'biology', title: 'Cell Biology', subject: 'Biology', questions: 12, updated: 'Today' },
-  { id: 'history', title: 'World War II', subject: 'History', questions: 8, updated: 'Yesterday' },
-]
+import { create, getAll } from '../api/materials.js'
 
 export default function MaterialsPage() {
   const [title, setTitle] = useState('')
-  const [materials, setMaterials] = useState(starterMaterials)
+  const [materials, setMaterials] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
-  function handleSubmit(event) {
+  async function loadMaterials() {
+    setLoading(true)
+    setError('')
+    try {
+      setMaterials(await getAll())
+    } catch (requestError) {
+      setError(requestError.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    loadMaterials()
+  }, [])
+
+  async function handleSubmit(event) {
     event.preventDefault()
     if (!title.trim()) return
-    const id = title.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-')
-    setMaterials([{ id, title: title.trim(), subject: 'New material', questions: 0, updated: 'Just now' }, ...materials])
-    setTitle('')
+    setError('')
+    try {
+      await create({ title: title.trim(), content: '' })
+      setTitle('')
+      await loadMaterials()
+    } catch (requestError) {
+      setError(requestError.message)
+    }
   }
 
   return (
@@ -43,20 +62,23 @@ export default function MaterialsPage() {
       <section aria-labelledby="materials-heading">
         <div className="mb-5 flex items-center justify-between">
           <h2 id="materials-heading" className="text-xl font-bold text-text">Recent materials</h2>
-          <span className="text-small text-slate-400">{materials.length} sets</span>
+          {!loading && !error && <span className="text-small text-slate-400">{materials.length} sets</span>}
         </div>
-        <div className="grid gap-4 md:grid-cols-2">
+        {loading && <p className="text-slate-500" role="status">Loading materials...</p>}
+        {!loading && error && <p className="text-red-600" role="alert">{error}</p>}
+        {!loading && !error && materials.length === 0 && <p className="text-slate-500">No materials yet. Create your first one above.</p>}
+        {!loading && !error && materials.length > 0 && <div className="grid gap-4 md:grid-cols-2">
           {materials.map((material) => (
             <Link key={material.id} to={`/materials/${material.id}`} className="group rounded-2xl border border-slate-200 bg-surface p-6 shadow-soft transition hover:-translate-y-0.5 hover:border-blue-200">
               <div className="mb-8 flex items-start justify-between gap-4">
-                <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-primary">{material.subject}</span>
-                <span className="text-xs text-slate-400">{material.updated}</span>
+                <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-primary">Study material</span>
+                <span className="text-xs text-slate-400">{new Date(material.uploaded_at).toLocaleDateString()}</span>
               </div>
               <h3 className="text-xl font-bold text-text group-hover:text-primary">{material.title}</h3>
-              <div className="mt-3 flex items-center gap-2 text-small text-slate-500"><span>{material.questions} practice questions</span><span className="text-slate-300">/</span><span>Keep studying <span aria-hidden="true">-&gt;</span></span></div>
+              <p className="mt-3 line-clamp-2 text-small text-slate-500">{material.content || 'No notes added yet.'}</p>
             </Link>
           ))}
-        </div>
+        </div>}
       </section>
     </main>
   )
