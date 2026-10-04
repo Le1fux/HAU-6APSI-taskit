@@ -1,0 +1,106 @@
+%PDF-1.4
+%PDF
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 5 0 R >> >> /Contents 4 0 R >>
+endobj
+4 0 obj
+<< /Length 2361 >>
+stream
+BT
+/F1 16 Tf
+54 748 Td
+(10 Networking Facts and Explanations) Tj
+/F1 10 Tf
+0 -28 Td
+(Fact 1: Network protocols define agreed rules for devices to format, send, and) Tj
+0 -15 Td
+(receive data. Shared rules let equipment and software from different makers) Tj
+0 -15 Td
+(communicate reliably.) Tj
+0 -15 Td
+0 -15 Td
+(Fact 2: An Internet Protocol \(IP\) address identifies a device interface on an IP) Tj
+0 -15 Td
+(network. Routers use destination IP addresses to move packets toward the correct) Tj
+0 -15 Td
+(network.) Tj
+0 -15 Td
+0 -15 Td
+(Fact 3: The Domain Name System \(DNS\) translates human-readable domain names into) Tj
+0 -15 Td
+(IP addresses. This lets people use names while network connections use numerical) Tj
+0 -15 Td
+(addresses.) Tj
+0 -15 Td
+0 -15 Td
+(Fact 4: A Media Access Control \(MAC\) address identifies a network interface on a) Tj
+0 -15 Td
+(local link. Ethernet switches use MAC addresses to forward frames within a local) Tj
+0 -15 Td
+(network.) Tj
+0 -15 Td
+0 -15 Td
+(Fact 5: A network switch connects devices on the same local network. It learns) Tj
+0 -15 Td
+(which MAC addresses are reachable through each port and forwards frames to the) Tj
+0 -15 Td
+(appropriate port.) Tj
+0 -15 Td
+0 -15 Td
+(Fact 6: A router connects separate IP networks and forwards packets between them.) Tj
+0 -15 Td
+(It checks routing information to choose a next hop for each destination.) Tj
+0 -15 Td
+0 -15 Td
+(Fact 7: Transmission Control Protocol \(TCP\) provides an ordered, reliable byte) Tj
+0 -15 Td
+(stream. It detects missing data and retransmits it, which suits applications that) Tj
+0 -15 Td
+(need complete delivery.) Tj
+0 -15 Td
+0 -15 Td
+(Fact 8: User Datagram Protocol \(UDP\) sends independent datagrams without) Tj
+0 -15 Td
+(guaranteeing delivery or order. Its lower overhead is useful when an application) Tj
+0 -15 Td
+(can tolerate loss or manage it itself.) Tj
+0 -15 Td
+0 -15 Td
+(Fact 9: Dynamic Host Configuration Protocol \(DHCP\) automatically provides network) Tj
+0 -15 Td
+(settings such as an IP address, subnet mask, gateway, and DNS server. This reduces) Tj
+0 -15 Td
+(manual device configuration.) Tj
+0 -15 Td
+0 -15 Td
+(Fact 10: Transport Layer Security \(TLS\) encrypts data in transit and helps verify) Tj
+0 -15 Td
+(a server identity. HTTPS uses TLS to protect communication between a web browser) Tj
+0 -15 Td
+(and a website.) Tj
+0 -15 Td
+ET
+endstream
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000014 00000 n 
+0000000063 00000 n 
+0000000120 00000 n 
+0000000246 00000 n 
+0000002658 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+2728
+%%EOF

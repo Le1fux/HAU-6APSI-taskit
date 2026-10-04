@@ -1,17 +1,19 @@
+import { buildReviewer } from '../utils/buildReviewer.js'
+
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '')
 const USE_MOCK_API = import.meta.env.VITE_USE_MOCK_API !== 'false'
 
 const mockMaterials = [
   {
-    id: 'biology',
-    title: 'Cell Biology',
-    content: 'Review the structure and function of cells, including organelles, membranes, and cellular processes.',
+    id: 'javascript-fundamentals',
+    title: 'JavaScript Fundamentals',
+    content: 'Review variables, data types, functions, conditionals, and loops. Practice how values move through a program and how functions organize reusable logic.',
     uploaded_at: '2026-09-27T00:00:00.000Z',
   },
   {
-    id: 'history',
-    title: 'World War II',
-    content: 'Study the major events, turning points, and lasting effects of World War II.',
+    id: 'data-structures',
+    title: 'Data Structures and Algorithms',
+    content: 'Study arrays, linked lists, stacks, queues, and hash maps. Compare common search and sort algorithms by their behavior and time complexity.',
     uploaded_at: '2026-09-26T00:00:00.000Z',
   },
 ]
@@ -69,6 +71,61 @@ async function mockRemove(id) {
   mockMaterials.splice(index, 1)
 }
 
+// Uses the local builder after the same short delay as other mock operations.
+async function mockGenerateReviewer(content, fileName) {
+  await delay()
+  const reviewer = buildReviewer(content, fileName)
+  if (reviewer.error) {
+    throw new Error("This PDF doesn't have enough readable content.")
+  }
+  return reviewer
+}
+
+// Requests a reviewer and converts expected API errors into user-safe messages.
+async function requestReviewer(content) {
+  let response
+  try {
+    response = await fetch(`${API_BASE_URL}/api/reviewer`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content }),
+    })
+  } catch {
+    const error = new Error('We could not reach the reviewer service. Please retry.')
+    error.isReviewerError = true
+    throw error
+  }
+
+  if (!response.ok) {
+    let body = null
+    try {
+      body = await response.json()
+    } catch {
+      // Preserve a friendly status-based message when the response is not JSON.
+    }
+
+    let message = 'We could not generate your reviewer. Please retry.'
+    if (response.status === 422) {
+      message = "This PDF doesn't have enough readable content."
+    } else if (body?.code === 'ANTHROPIC_API_KEY_MISSING') {
+      message = 'API Key Missing: add ANTHROPIC_API_KEY to the server environment.'
+    } else if (body?.code === 'ANTHROPIC_AUTHENTICATION_FAILED') {
+      message = 'Authentication Failed: check the Anthropic API key configuration.'
+    } else if (typeof body?.message === 'string') {
+      message = body.message
+    } else if (typeof body?.error === 'string' && body.error !== body.code) {
+      message = body.error
+    }
+
+    const error = new Error(message)
+    error.code = body?.code
+    error.isReviewerError = true
+    throw error
+  }
+
+  return response.json()
+}
+
 async function request(path, options = {}) {
   const response = await fetch(`${API_BASE_URL}/api/materials${path}`, {
     headers: { 'Content-Type': 'application/json', ...options.headers },
@@ -117,4 +174,8 @@ export function remove(id) {
   return USE_MOCK_API
     ? mockRemove(id)
     : request(`/${encodeURIComponent(id)}`, { method: 'DELETE' })
+}
+
+export function generateReviewer(content, fileName) {
+  return USE_MOCK_API ? mockGenerateReviewer(content, fileName) : requestReviewer(content)
 }

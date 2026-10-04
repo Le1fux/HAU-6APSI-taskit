@@ -2,21 +2,26 @@
 export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
+    screens: {
+      md: '768px',
+    },
     extend: {
       colors: {
-        primary: '#1D4ED8',
-        accent: '#F59E0B',
-        bg: '#F7F8FC',
+        primary: '#2563EB',
+        accent: '#15803D',
+        bg: '#F8FAFC',
         surface: '#FFFFFF',
-        text: '#172033',
+        text: '#1E293B',
       },
       fontSize: {
-        heading: ['2.25rem', { lineHeight: '1.1', fontWeight: '700' }],
-        body: ['1rem', { lineHeight: '1.6' }],
-        small: ['0.875rem', { lineHeight: '1.4' }],
+        heading: ['1.5rem', { lineHeight: '1.25', fontWeight: '700' }],
+        body: ['1rem', { lineHeight: '1.5' }],
+        small: ['0.8125rem', { lineHeight: '1.4' }],
       },
-      boxShadow: {
-        soft: '0 12px 30px rgba(23, 32, 51, 0.07)',
+      spacing: {
+        tight: '8px',
+        standard: '32px',
+        screen: '24px',
       },
     },
   },

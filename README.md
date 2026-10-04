@@ -51,7 +51,7 @@ Start your local PostgreSQL service, then create the `taskit` database. With Pos
 createdb taskit
 ```
 
-If `createdb` is unavailable, connect to PostgreSQL with an administrator and run `CREATE DATABASE taskit;` once. Ensure the `DATABASE_URL` in `server/.env` points to that database and uses credentials that can create the schema and rows.
+If `createdb` is unavailable, connect to PostgreSQL with an administrator and run `CREATE DATABASE taskit;` once. If set, `DATABASE_URL` in the root `.env` must point to that database and use credentials that can create the schema and rows; it is optional, and without it only the reviewer and health routes work.
 
 From the terminal already in `server/`, run the server script. It executes the checked-in SQL files through the Node `pg` driver, so `psql` is not required for schema and seed execution:
 
@@ -65,7 +65,7 @@ npm run db:reset
 
 | File / variable | Required for | Example or behavior |
 | --- | --- | --- |
-| `server/.env` - `DATABASE_URL` | API and database scripts | `postgresql://postgres:devpassword@localhost:5432/taskit`; replace username/password for your machine. |
+| root `.env` - `DATABASE_URL` | Optional for database routes and scripts | `postgresql://postgres:devpassword@localhost:5432/taskit`; replace username/password for your machine. Without it, only the reviewer and health routes work. |
 | `server/.env` - `CORS_ORIGINS` | API requests from browsers | `http://localhost:5173`; comma-separated origins, no path or trailing slash. |
 | `server/.env` - `NODE_ENV` | API runtime | `development` locally; set `production` in a production host's environment. |
 | `PORT` | API runtime | Optional; defaults to `3000`. Do not set it in the local example unless you need a different port. |

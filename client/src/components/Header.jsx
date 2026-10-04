@@ -1,17 +1,18 @@
 import { Link, NavLink } from 'react-router-dom'
 
+// Provides the TaskIt brand and primary navigation.
 export default function Header() {
   return (
-    <header className="border-b border-slate-200 bg-surface">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-5 lg:px-8">
-        <Link to="/" className="flex items-center gap-3" aria-label="TaskIt home">
-          <span className="grid h-10 w-10 place-items-center rounded-xl bg-primary text-lg font-bold text-white shadow-soft">T</span>
-          <span className="text-xl font-bold tracking-tight text-text">TaskIt</span>
+    <header className="border-b border-text/10 bg-surface">
+      <div className="mx-auto flex max-w-6xl items-center justify-between px-screen py-tight">
+        <Link to="/" className="flex items-center gap-tight" aria-label="TaskIt home">
+          <span className="grid size-10 place-items-center rounded-md bg-primary text-body font-bold text-surface">T</span>
+          <span className="text-heading text-text">TaskIt</span>
         </Link>
         <nav aria-label="Primary navigation">
           <NavLink
             to="/"
-            className={({ isActive }) => `text-sm font-semibold transition ${isActive ? 'text-primary' : 'text-slate-500 hover:text-text'}`}
+            className={({ isActive }) => `text-body font-bold transition-colors ${isActive ? 'text-primary' : 'text-text hover:text-primary'}`}
           >
             My materials
           </NavLink>
