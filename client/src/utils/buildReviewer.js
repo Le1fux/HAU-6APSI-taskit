@@ -6,6 +6,7 @@ const STOP_WORDS = new Set([
 const GENERIC_LABELS = new Set([
   'explanation', 'fact', 'note', 'notes', 'example', 'answer', 'summary', 'tip', 'question',
 ])
+const METADATA_LABELS = new Set(['presented by', 'source', 'page number'])
 
 function wordsIn(text) {
   return text.toLowerCase().match(/[a-z0-9]+/g) || []
@@ -53,7 +54,8 @@ function parseFactPairs(lines) {
 function parseLabeledFacts(lines) {
   return lines.flatMap((line) => {
     const match = line.match(/^([A-Za-z][A-Za-z0-9+/#() _-]{0,39}):\s*(.+)$/)
-    if (!match || GENERIC_LABELS.has(match[1].trim().toLowerCase())) return []
+    const label = match?.[1].trim().toLowerCase()
+    if (!match || GENERIC_LABELS.has(label) || METADATA_LABELS.has(label)) return []
     return [{ statement: match[1].trim(), explanation: match[2].trim() }]
   })
 }
@@ -61,7 +63,7 @@ function parseLabeledFacts(lines) {
 function deduplicateFacts(facts) {
   const seen = new Set()
   return facts.filter(({ statement }) => {
-    const key = lettersOnlyKey(statement)
+    const key = statement.toLowerCase().replace(/[^a-z0-9]/g, '')
     if (!key || seen.has(key)) return false
     seen.add(key)
     return true
@@ -95,23 +97,73 @@ function makeFactQuestions(facts) {
   return questions
 }
 
+function makeLabeledFactQuestions(facts) {
+  const questions = []
+
+  for (const fact of facts) {
+    const label = fact.statement.toLowerCase()
+    let question
+
+    if (label === 'word of the day') {
+      question = 'Which word is featured as the word of the day?'
+    } else if (/^meaning(?:\s+\d+)?$/.test(label)) {
+      const number = Number(label.match(/\d+/)?.[0])
+      const ordinal = ['first', 'second', 'third', 'fourth', 'fifth'][number - 1]
+      question = ordinal
+        ? `What is the ${ordinal} meaning of the word of the day?`
+        : 'What does the word of the day mean?'
+    } else if (/^sentence(?:\s+\d+)?$/.test(label)) {
+      question = 'Which sentence shows the word of the day in use?'
+    } else if (label === 'part of speech') {
+      question = 'What part of speech is the word of the day?'
+    } else if (fact.explanation.length >= 20) {
+      question = `What is ${fact.statement.toLowerCase()}?`
+    }
+
+    if (question && fact.explanation.length >= 2) {
+      questions.push({ question, answer: fact.explanation })
+    }
+    if (questions.length >= 10) break
+  }
+
+  return questions
+}
+
 function makeSentenceSummary(text) {
   const sentences = uniqueByLetters(text.split(/(?<=[.!?])\s+/)
     .map((sentence) => sentence.trim())
-    .filter((sentence) => sentence.length >= 40 && sentence.length <= 300))
+    .filter((sentence) => sentence.length >= 40 && sentence.length <= 350))
   const frequency = new Map()
   for (const word of wordsIn(text)) {
-    if (!STOP_WORDS.has(word)) frequency.set(word, (frequency.get(word) || 0) + 1)
+    if (word.length >= 4 && !STOP_WORDS.has(word)) {
+      frequency.set(word, (frequency.get(word) || 0) + 1)
+    }
   }
 
-  return sentences.map((sentence, index) => ({
-    sentence,
-    index,
-    score: wordsIn(sentence).reduce((total, word) => total + (STOP_WORDS.has(word) ? 0 : frequency.get(word) || 0), 0),
-  }))
-    .sort((left, right) => right.score - left.score || left.index - right.index)
-    .slice(0, 8)
-    .sort((left, right) => left.index - right.index)
+  const rankedSentences = sentences.map((sentence, index) => {
+    const terms = new Set(wordsIn(sentence).filter((word) => word.length >= 4 && !STOP_WORDS.has(word)))
+    return {
+      sentence,
+      index,
+      terms,
+      score: terms.size
+        ? [...terms].reduce((total, word) => total + Math.log1p(frequency.get(word) || 0), 0) / Math.sqrt(terms.size)
+        : 0,
+    }
+  }).sort((left, right) => right.score - left.score || left.index - right.index)
+
+  const selected = []
+  const coveredTerms = new Set()
+  for (const candidate of rankedSentences) {
+    if (candidate.terms.size < 3) continue
+    const overlap = [...candidate.terms].filter((word) => coveredTerms.has(word)).length / candidate.terms.size
+    if (overlap > 0.65) continue
+    selected.push(candidate)
+    for (const word of candidate.terms) coveredTerms.add(word)
+    if (selected.length === 6) break
+  }
+
+  return selected.sort((left, right) => left.index - right.index)
     .map(({ sentence }) => trimText(sentence, 200))
 }
 
@@ -133,12 +185,14 @@ export function buildReviewer(text, fileName) {
   if (pairedFacts.length) {
     summary = pairedFacts.map(({ statement }) => trimText(statement, 160)).slice(0, 10)
   } else if (facts.length) {
-    summary = facts.map(({ statement }) => trimText(statement, 160)).slice(0, 10)
+    summary = facts.map(({ statement, explanation }) =>
+      trimText(`${statement}: ${explanation}`, 200)
+    ).slice(0, 10)
   } else {
     summary = makeSentenceSummary(cleanText)
   }
 
-  const questions = makeFactQuestions(facts)
+  const questions = pairedFacts.length ? makeFactQuestions(facts) : makeLabeledFactQuestions(facts)
   if (facts.length === 0) {
     for (const sentence of makeSentenceSummary(cleanText)) {
       if (questions.length >= 10) break
