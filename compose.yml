@@ -30,7 +30,9 @@ services:
     # keep the 127.0.0.1 so it does not listen on your whole network.
 
   api:
-    build: ./server
+    build:
+      context: .
+      dockerfile: server/Dockerfile
     restart: unless-stopped
     environment:
       # "db" is the service name above; Compose resolves it for you.
@@ -38,13 +40,15 @@ services:
       CORS_ORIGINS: ${CORS_ORIGINS}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
       ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-claude-haiku-4-5-20251001}
+      BASIC_AUTH_USER: ${BASIC_AUTH_USER}
+      BASIC_AUTH_PASS: ${BASIC_AUTH_PASS}
       NODE_ENV: production
-      PORT: 3000
+      PORT: 10000
     depends_on:
       db:
         condition: service_healthy
     ports:
-      - '127.0.0.1:3000:3000'   # localhost only; your tunnel reaches it here
+      - '127.0.0.1:3000:10000'   # localhost only; your tunnel reaches it here
 
 volumes:
   pgdata:

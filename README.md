@@ -74,6 +74,7 @@ npm run db:reset
 | `client/.env` - `VITE_API_BASE_URL` | Client live API mode | `http://localhost:3000`; no trailing slash. Ignored in mock mode. |
 | root `.env` - `POSTGRES_PASSWORD` | Optional Docker Compose setup | Local-only PostgreSQL password; replace the example before starting Compose. |
 | root `.env` - `CORS_ORIGINS` | Optional Docker Compose setup | `http://localhost:5173`. |
+| root `.env` - `BASIC_AUTH_USER`, `BASIC_AUTH_PASS` | Docker Compose access gate | Replace both local placeholders before starting Compose. |
 
 Copy each relevant `.env.example` to `.env` in the same directory. The client variables are public build-time values; never put passwords, keys, or connection strings in any `VITE_` variable. Real credentials belong only in ignored local `.env` files or the hosting provider's protected environment settings.
 
@@ -115,11 +116,11 @@ For the client alone, leave `VITE_USE_MOCK_API=true`; no server or database is n
 
 ## Optional Docker Compose setup
 
-From the repository root, copy the root example, replace its placeholder password, and start the services:
+From the repository root, copy the root example, replace the database and access-gate placeholders, and start the services:
 
 ```powershell
 Copy-Item .env.example .env
-# Edit .env and replace POSTGRES_PASSWORD before starting services.
+# Edit .env and replace POSTGRES_PASSWORD and the Basic Auth credentials.
 docker compose up --build -d
 ```
 
@@ -168,7 +169,7 @@ server/                  Express/PostgreSQL API
   server.js              health, readiness, and materials endpoints
 compose.yml              optional PostgreSQL and API services
 .env.example             local Compose placeholders; copy to ignored root .env
-server/.dockerignore     excludes local env and dependency files from image builds
+.dockerignore            excludes local env, dependencies, and build output from image context
 project/                 M8A4 report and security checklist
 docs/                    proposal, mockup, design, journals, reports
   assets/README.md       screenshot capture checklist; no screenshots yet

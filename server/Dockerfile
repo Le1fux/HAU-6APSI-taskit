@@ -1,8 +1,21 @@
-# Only needed if you self-host with Docker Compose. See page 11.
+# Build the frontend
+FROM node:20-alpine AS client-build
+WORKDIR /app/client
+COPY client/package*.json ./
+RUN npm ci
+COPY client/ ./
+RUN npm run build
+
+# Prepare the backend
 FROM node:20-alpine
-WORKDIR /app
-COPY package*.json ./
+WORKDIR /app/server
+COPY server/package*.json ./
 RUN npm ci --omit=dev
-COPY . .
-EXPOSE 3000
+COPY server/ ./
+
+# Include the frontend build where server.js expects it
+COPY --from=client-build /app/client/dist /app/client/dist
+
+ENV NODE_ENV=production
+EXPOSE 10000
 CMD ["node", "server.js"]
