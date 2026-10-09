@@ -51,7 +51,7 @@ Start your local PostgreSQL service, then create the `taskit` database. With Pos
 createdb taskit
 ```
 
-If `createdb` is unavailable, connect to PostgreSQL with an administrator and run `CREATE DATABASE taskit;` once. If set, `DATABASE_URL` in the root `.env` must point to that database and use credentials that can create the schema and rows; it is optional, and without it only the reviewer and health routes work.
+If `createdb` is unavailable, connect to PostgreSQL with an administrator and run `CREATE DATABASE taskit;` once. If set, `DATABASE_URL` in `server/.env` must point to that database and use credentials that can create the schema and rows; it is optional, and without it only the reviewer and health routes work.
 
 From the terminal already in `server/`, run the server script. It executes the checked-in SQL files through the Node `pg` driver, so `psql` is not required for schema and seed execution:
 
@@ -65,9 +65,10 @@ npm run db:reset
 
 | File / variable | Required for | Example or behavior |
 | --- | --- | --- |
-| root `.env` - `DATABASE_URL` | Optional for database routes and scripts | `postgresql://postgres:devpassword@localhost:5432/taskit`; replace username/password for your machine. Without it, only the reviewer and health routes work. |
+| `server/.env` - `DATABASE_URL` | Optional for database routes and scripts | `postgresql://postgres:devpassword@localhost:5432/taskit`; replace username/password for your machine. Without it, only the reviewer and health routes work. |
 | `server/.env` - `CORS_ORIGINS` | API requests from browsers | `http://localhost:5173`; comma-separated origins, no path or trailing slash. |
 | `server/.env` - `NODE_ENV` | API runtime | `development` locally; set `production` in a production host's environment. |
+| `BASIC_AUTH_USER`, `BASIC_AUTH_PASS` | Optional local access gate; required together, and required in production | Set as protected host environment variables. Do not commit credentials. |
 | `PORT` | API runtime | Optional; defaults to `3000`. Do not set it in the local example unless you need a different port. |
 | `client/.env` - `VITE_USE_MOCK_API` | Client data source, compiled at build time | `true` uses the in-memory sample materials; set to exact `false` to call the API. |
 | `client/.env` - `VITE_API_BASE_URL` | Client live API mode | `http://localhost:3000`; no trailing slash. Ignored in mock mode. |
@@ -126,11 +127,11 @@ Compose creates database `taskit`, mounts the schema and seed scripts for first-
 
 ## Implemented features and limitations
 
-**Implemented:** four React Router screens; responsive Tailwind layout; materials list loading; title-only material creation; material detail loading; mock/live API selection; server-side material validation; PostgreSQL materials schema; and materials CRUD route implementations.
+**Implemented:** four React Router screens; responsive Tailwind layout; materials list loading; title-only material creation; material detail loading; mock/live API selection; server-side material and ID validation; optional HTTP Basic access gate; PostgreSQL materials schema; and materials CRUD route implementations.
 
 **Partial or mock-only:** the mock material store exists only in JavaScript memory, not localStorage. The Materials form sends empty content because it has no content editor. Material detail displays three generic hardcoded practice questions. Quiz uses hardcoded questions and a generic revealed answer; its index, revealed state, and score stay local to that page. Results displays fixed sample score, missed-question, and attempt-history content, not data from the latest quiz.
 
-**Not implemented:** question create/read/update/delete API or UI, question persistence, dynamic quiz results and missed-question tracking, saved attempt history, authentication/access control, and production deployment of the API/database.
+**Not implemented:** question create/read/update/delete API or UI, question persistence, dynamic quiz results and missed-question tracking, saved attempt history, and production deployment/configuration of the API/database and access gate.
 
 ## API reference
 
@@ -141,10 +142,10 @@ All API routes are defined in `server/server.js`. Database values are passed as 
 | `GET` | `/healthz` | Process liveness; returns `{ "ok": true }`. |
 | `GET` | `/readyz` | Checks database connectivity; returns `{ "ok": true, "db": "up" }` or HTTP 503 when unavailable. |
 | `GET` | `/api/materials` | Returns material rows ordered by `uploaded_at` descending. |
-| `GET` | `/api/materials/:id` | Returns one material or HTTP 404. |
+| `GET` | `/api/materials/:id` | Returns one material, HTTP 400 for an invalid ID, or HTTP 404. |
 | `POST` | `/api/materials` | JSON body `{ "title": "...", "content": "..." }`; returns HTTP 201 and the inserted row. Title is required, max 200 characters; content max 10,000 characters. |
-| `PUT` | `/api/materials/:id` | JSON body with `title` and `content`; returns the updated row or HTTP 404. Uses the same validation as POST. |
-| `DELETE` | `/api/materials/:id` | Deletes a material; returns HTTP 204 or HTTP 404. |
+| `PUT` | `/api/materials/:id` | JSON body with `title` and `content`; returns the updated row, HTTP 400 for an invalid ID, or HTTP 404. Uses the same validation as POST. |
+| `DELETE` | `/api/materials/:id` | Deletes a material; returns HTTP 204, HTTP 400 for an invalid ID, or HTTP 404. |
 
 No questions API currently exists. The API's default error middleware logs server details and returns a generic HTTP 500 response.
 
@@ -190,7 +191,7 @@ See [`docs/assets/README.md`](docs/assets/README.md) for the capture checklist.
 1. Add a content field to the Materials form and decide whether mock data should persist across reloads.
 2. Implement question CRUD and connect questions to a material.
 3. Lift or persist quiz attempt state so Results reflects the actual score and missed questions.
-4. Add and test authentication/access control before exposing private student material through a public API.
+4. Configure `BASIC_AUTH_USER` and `BASIC_AUTH_PASS` on the production host before exposing private student material through a public API.
 5. Capture real desktop and mobile screenshots and verify keyboard access, responsive layouts, and contrast.
 6. Run a full local PostgreSQL/API/client integration test; it has not been verified as part of this update.
 

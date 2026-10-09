@@ -1,5 +1,7 @@
 import express from 'express'
 import cors from 'cors'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { pool } from './db/pool.js'
 import * as materials from './materialsRepo.js'
 
@@ -31,6 +33,34 @@ app.use((request, response, next) => {
 // Is the process alive?
 app.get('/healthz', (request, response) => {
   response.json({ ok: true })
+})
+
+const gateUser = process.env.BASIC_AUTH_USER
+const gatePass = process.env.BASIC_AUTH_PASS
+
+if (Boolean(gateUser) !== Boolean(gatePass)) {
+  throw new Error('BASIC_AUTH_USER and BASIC_AUTH_PASS must be configured together')
+}
+if (process.env.NODE_ENV === 'production' && !gateUser) {
+  throw new Error('BASIC_AUTH_USER and BASIC_AUTH_PASS are required in production')
+}
+
+app.use((request, response, next) => {
+  if (!gateUser || !gatePass) return next()
+
+  const [scheme, encoded] = (request.headers.authorization || '').split(' ')
+  const decoded = Buffer.from(encoded || '', 'base64').toString()
+  const separator = decoded.indexOf(':')
+
+  if (
+    scheme === 'Basic' &&
+    separator > -1 &&
+    decoded.slice(0, separator) === gateUser &&
+    decoded.slice(separator + 1) === gatePass
+  ) return next()
+
+  response.set('WWW-Authenticate', 'Basic realm="TaskIt"')
+  response.status(401).send('Authentication required')
 })
 
 // Is the database reachable? A different question, and the one that tells you
@@ -187,6 +217,14 @@ function validate(body) {
   return { errors, value: { title, content } }
 }
 
+function validateId(request, response, next) {
+  const id = request.params.id
+  if (!/^\d+$/.test(id) || !Number.isSafeInteger(Number(id))) {
+    return response.status(400).json({ error: 'Invalid id' })
+  }
+  next()
+}
+
 app.get('/api/materials', async (request, response, next) => {
   try {
     response.json(await materials.getAll(pool))
@@ -195,7 +233,7 @@ app.get('/api/materials', async (request, response, next) => {
   }
 })
 
-app.get('/api/materials/:id', async (request, response, next) => {
+app.get('/api/materials/:id', validateId, async (request, response, next) => {
   try {
     const material = await materials.getById(pool, request.params.id)
     if (!material) return response.status(404).json({ error: 'Not found' })
@@ -216,7 +254,7 @@ app.post('/api/materials', async (request, response, next) => {
   }
 })
 
-app.put('/api/materials/:id', async (request, response, next) => {
+app.put('/api/materials/:id', validateId, async (request, response, next) => {
   const { errors, value } = validate(request.body ?? {})
   if (errors.length > 0) return response.status(400).json({ error: errors.join('; ') })
 
@@ -229,7 +267,7 @@ app.put('/api/materials/:id', async (request, response, next) => {
   }
 })
 
-app.delete('/api/materials/:id', async (request, response, next) => {
+app.delete('/api/materials/:id', validateId, async (request, response, next) => {
   try {
     const removed = await materials.remove(pool, request.params.id)
     if (!removed) return response.status(404).json({ error: 'Not found' })
@@ -238,6 +276,14 @@ app.delete('/api/materials/:id', async (request, response, next) => {
     next(error)
   }
 })
+
+const clientDist = path.join(path.dirname(fileURLToPath(import.meta.url)), '../client/dist')
+app.use(express.static(clientDist))
+app.get('*', (request, response, next) =>
+  request.path.startsWith('/api')
+    ? next()
+    : response.sendFile(path.join(clientDist, 'index.html'))
+)
 
 app.use((request, response) => {
   response.status(404).json({ error: 'No such route' })
