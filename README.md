@@ -1,5 +1,4 @@
 # StudyLens
-
 StudyLens turns study PDFs into focused, source-grounded guides with specific findings, key terms, page citations, supporting excerpts, and practice questions.
 
 ## Intended user and problem
