@@ -38,7 +38,7 @@ function uniqueByLetters(items) {
 function parseFactPairs(lines) {
   const facts = []
   for (let index = 0; index < lines.length - 1; index += 1) {
-    const factMatch = lines[index].match(/^Fact\s+\[?\d+\]?\s+(.+)$/i)
+    const factMatch = lines[index].match(/^Fact\s+\[?\d+\]?\s*:?\s*(.+)$/i)
     const explanationMatch = lines[index + 1].match(/^Explanation\s*:\s*(.+)$/i)
     if (!factMatch || !explanationMatch) continue
 
@@ -48,6 +48,13 @@ function parseFactPairs(lines) {
     index += 1
   }
   return facts
+}
+
+function parseNumberedFacts(lines) {
+  return lines.flatMap((line) => {
+    const match = line.match(/^Fact\s+\[?\d+\]?\s*:\s*(.+)$/i)
+    return match ? [{ statement: match[1].trim(), explanation: '' }] : []
+  })
 }
 
 // Accepts specific colon-label facts but excludes headings and generic labels.
@@ -60,6 +67,19 @@ function parseLabeledFacts(lines) {
   })
 }
 
+function findExplicitTerms(text) {
+  const terms = []
+  const namedTerms = /\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,3}\s+\([A-Z][A-Z0-9]{1,}\)|[A-Z][A-Z0-9]{1,})/g
+  for (const match of text.matchAll(namedTerms)) {
+    const term = match[1].trim().replace(/^(?:A|An|The)\s+/, '')
+    if (/^[A-Z][A-Z0-9]{1,}$/.test(term) && terms.some((existing) => existing.endsWith(`(${term})`))) {
+      continue
+    }
+    if (!terms.includes(term)) terms.push(term)
+  }
+  return terms
+}
+
 function deduplicateFacts(facts) {
   const seen = new Set()
   return facts.filter(({ statement }) => {
@@ -68,33 +88,6 @@ function deduplicateFacts(facts) {
     seen.add(key)
     return true
   })
-}
-
-function firstKeyTerm(statement) {
-  const acronym = statement.match(/\b[A-Z][A-Z0-9]{1,}\b/)
-  if (acronym) return acronym[0]
-  const tokens = statement.match(/[A-Za-z][A-Za-z0-9]*/g) || []
-  return tokens.find((word) => word.length >= 6 && !STOP_WORDS.has(word.toLowerCase()))
-}
-
-function makeFactQuestions(facts) {
-  const questions = []
-  for (const fact of facts) {
-    if (questions.length >= 10) break
-    if (fact.explanation.length < 20) continue
-
-    if (questions.length % 2 === 0) {
-      const keyTerm = firstKeyTerm(fact.statement)
-      if (keyTerm) {
-        const blanked = fact.statement.replace(new RegExp(`\\b${keyTerm}\\b`, 'i'), '_____')
-        questions.push({ question: `Complete the fact: ${blanked}`, answer: `${keyTerm}: ${fact.explanation}` })
-        continue
-      }
-    }
-
-    questions.push({ question: `Explain: ${fact.statement}`, answer: fact.explanation })
-  }
-  return questions
 }
 
 function makeLabeledFactQuestions(facts) {
@@ -124,6 +117,121 @@ function makeLabeledFactQuestions(facts) {
       questions.push({ question, answer: fact.explanation })
     }
     if (questions.length >= 10) break
+  }
+
+  return questions
+}
+
+function makeSentenceQuestions(sentences) {
+  const questions = []
+  const seen = new Set()
+  const baseVerbs = {
+    'breaks down': 'break down',
+    'break down': 'break down',
+    causes: 'cause',
+    cause: 'cause',
+    connects: 'connect',
+    connect: 'connect',
+    contains: 'contain',
+    contain: 'contain',
+    converts: 'convert',
+    convert: 'convert',
+    defines: 'define',
+    define: 'define',
+    absorbs: 'absorb',
+    absorb: 'absorb',
+    enters: 'enter',
+    enter: 'enter',
+    encrypts: 'encrypt',
+    encrypt: 'encrypt',
+    forwards: 'forward',
+    forward: 'forward',
+    identifies: 'identify',
+    identify: 'identify',
+    includes: 'include',
+    include: 'include',
+    increases: 'increase',
+    increase: 'increase',
+    decreases: 'decrease',
+    decrease: 'decrease',
+    learns: 'learn',
+    learn: 'learn',
+    moves: 'move',
+    move: 'move',
+    produces: 'produce',
+    produce: 'produce',
+    provides: 'provide',
+    provide: 'provide',
+    receives: 'receive',
+    receive: 'receive',
+    releases: 'release',
+    release: 'release',
+    requires: 'require',
+    require: 'require',
+    sends: 'send',
+    send: 'send',
+    stores: 'store',
+    store: 'store',
+    translates: 'translate',
+    translate: 'translate',
+    uses: 'use',
+    use: 'use',
+    'depends on': 'depend on',
+    'depend on': 'depend on',
+  }
+  const actionPattern = /^(.+?)\s+(breaks down|break down|depends on|depend on|converts|convert|absorbs|absorb|enters|enter|uses|use|produces|produce|releases|release|provides|provide|connects|connect|forwards|forward|identifies|identify|translates|translate|defines|define|causes|cause|increases|increase|decreases|decrease|requires|require|contains|contain|includes|include|encrypts|encrypt|learns|learn|moves|move|receives|receive|sends|send|stores|store)\s+(.+)[.!?]?$/i
+
+  function lowerInitial(text) {
+    const firstWord = text.match(/^\S+/)?.[0] || ''
+    if (/^[A-Z0-9]{2,}$/.test(firstWord)) return text
+    return text ? `${text[0].toLowerCase()}${text.slice(1)}` : text
+  }
+
+  function auxiliaryFor(subject) {
+    const lastWord = subject.split(/\s+/).pop().toLowerCase()
+    return lastWord.endsWith('s') && !/(?:ics|is|ness|ous|sis|ss|us)$/i.test(lastWord)
+      ? 'do'
+      : 'does'
+  }
+
+  for (const item of sentences) {
+    const sentence = typeof item === 'string' ? item : item.statement
+    const explanation = typeof item === 'string' ? '' : item.explanation
+    const cleanSentence = sentence.replace(/[.!?]+$/, '').trim()
+    const definition = cleanSentence.match(/^(.+?)\s+(?:is|are|means|refers to)\s+(.+)$/i)
+    const action = cleanSentence.match(actionPattern)
+    let question
+    let answer
+
+    if (definition) {
+      const subject = definition[1]
+      question = `What is ${lowerInitial(subject)}?`
+      answer = explanation || definition[2]
+    } else if (action) {
+      const subject = action[1]
+      const verb = action[2].toLowerCase()
+      const object = action[3].replace(/(?:,\s*|\s+)(?:while|whereas|but)\b.*$/i, '').trim()
+      if ((verb === 'enters' || verb === 'enter') && /^(?:through|via|into|from)\b/i.test(object) && !explanation) {
+        question = `Where does ${lowerInitial(subject)} enter?`
+        answer = object
+      } else if (explanation) {
+        const auxiliary = auxiliaryFor(subject)
+        question = `How ${auxiliary} ${lowerInitial(subject)} ${baseVerbs[verb]} ${object}?`
+        answer = explanation
+      } else {
+        const auxiliary = auxiliaryFor(subject)
+        question = `What ${auxiliary} ${lowerInitial(subject)} ${baseVerbs[verb]}?`
+        answer = object
+      }
+    } else {
+      continue
+    }
+
+    const key = question.toLowerCase().replace(/[^a-z0-9]/g, '')
+    if (seen.has(key)) continue
+    seen.add(key)
+    questions.push({ question, answer: answer.replace(/[.!?]+$/, ''), sourceText: sentence })
+    if (questions.length === 10) break
   }
 
   return questions
@@ -185,13 +293,30 @@ function getSourceLines(text) {
 }
 
 function sourceFor(text, sourceLines) {
-  const normalized = text.toLowerCase().replace(/\s+/g, ' ').trim()
-  const source = sourceLines.find(({ text: line }) =>
-    line.toLowerCase().replace(/\s+/g, ' ').includes(normalized)
-  )
-  return source
-    ? { page: source.page, evidence: trimText(source.text, 280) }
-    : { page: null, evidence: '' }
+  const query = text.replace(/\.\.\.$/, '').replace(/\s+/g, ' ').trim()
+  if (!query) return { page: null, evidence: '' }
+
+  const pattern = query.split(' ')
+    .map((word) => word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+    .join('\\s+')
+  const sources = [...sourceLines]
+  const pageGroups = new Map()
+
+  for (const source of sourceLines) {
+    const group = pageGroups.get(source.page) || { page: source.page, text: [] }
+    group.text.push(source.text)
+    pageGroups.set(source.page, group)
+  }
+  sources.push(...[...pageGroups.values()].map(({ page, text: pageLines }) => ({
+    page,
+    text: pageLines.join(' '),
+  })))
+
+  for (const source of sources) {
+    const match = source.text.match(new RegExp(pattern, 'i'))
+    if (match) return { page: source.page, evidence: trimText(match[0], 280) }
+  }
+  return { page: null, evidence: '' }
 }
 
 // Builds a local reviewer without external services.
@@ -205,11 +330,18 @@ export function buildReviewer(text, fileName) {
   const cleanText = lines.join(' ')
   const title = (fileName || 'Study notes').replace(/\.pdf$/i, '').replace(/\s+/g, ' ').trim()
   const pairedFacts = deduplicateFacts(parseFactPairs(lines))
-  const facts = pairedFacts.length ? pairedFacts : deduplicateFacts(parseLabeledFacts(lines))
+  const numberedFacts = pairedFacts.length ? pairedFacts : deduplicateFacts(parseNumberedFacts(lines))
+  const labeledFacts = deduplicateFacts(parseLabeledFacts(lines))
+    .filter(({ statement }) => !/^fact\s+\d+$/i.test(statement))
+  const facts = pairedFacts.length
+    ? pairedFacts
+    : numberedFacts.length
+      ? numberedFacts
+      : labeledFacts
 
   let summary
-  if (pairedFacts.length) {
-    summary = pairedFacts.map(({ statement }) => trimText(statement, 160)).slice(0, 10)
+  if (numberedFacts.length) {
+    summary = numberedFacts.map(({ statement }) => trimText(statement, 160)).slice(0, 10)
   } else if (facts.length) {
     summary = facts.map(({ statement, explanation }) =>
       trimText(`${statement}: ${explanation}`, 200)
@@ -218,31 +350,50 @@ export function buildReviewer(text, fileName) {
     summary = makeSentenceSummary(cleanText)
   }
 
-  let questions = pairedFacts.length ? makeFactQuestions(facts) : makeLabeledFactQuestions(facts)
-  if (facts.length === 0) {
-    for (const sentence of makeSentenceSummary(cleanText)) {
-      if (questions.length >= 10) break
-      const keyTerm = firstKeyTerm(sentence)
-      if (!keyTerm) continue
-      const blanked = sentence.replace(new RegExp(`\\b${keyTerm}\\b`, 'i'), '_____')
-      const answer = `${keyTerm}: ${sentence}`
-      if (answer.length >= 20) questions.push({ question: `Complete the fact: ${blanked}`, answer })
-    }
-  }
+  let questions = pairedFacts.length
+    ? makeSentenceQuestions(pairedFacts)
+    : numberedFacts.length
+      ? makeSentenceQuestions(numberedFacts)
+      : facts.length
+        ? makeLabeledFactQuestions(facts)
+        : makeSentenceQuestions(makeSentenceSummary(cleanText))
 
   const findings = summary.slice(0, 8).map((finding) => ({
     text: finding,
     ...sourceFor(finding, sourceLines),
   }))
-  const labeledFacts = deduplicateFacts(parseLabeledFacts(lines))
-  const keyTerms = labeledFacts.slice(0, 8).map(({ statement, explanation }) => ({
-    term: statement,
-    definition: explanation,
-    ...sourceFor(`${statement}: ${explanation}`, sourceLines),
+  const explicitTerms = [
+    ...labeledFacts.map(({ statement, explanation }) => ({
+      term: statement,
+      definition: explanation,
+      sourceText: `${statement}: ${explanation}`,
+    })),
+    ...numberedFacts.flatMap(({ statement, explanation }) =>
+      findExplicitTerms(statement).map((term) => ({
+        term,
+        definition: explanation || statement,
+        sourceText: statement,
+      }))
+    ),
+  ]
+  const expandedAcronyms = new Set(explicitTerms.flatMap(({ term }) => {
+    const acronym = term.match(/\(([A-Z][A-Z0-9]{1,})\)$/)
+    return acronym ? [acronym[1]] : []
   }))
-  questions = questions.slice(0, 10).map((question) => ({
+  const seenTerms = new Set()
+  const keyTerms = explicitTerms.filter(({ term }) => {
+    if (/^[A-Z][A-Z0-9]{1,}$/.test(term) && expandedAcronyms.has(term)) return false
+    const normalizedTerm = term.toLowerCase().replace(/[^a-z0-9]/g, '')
+    if (!normalizedTerm || seenTerms.has(normalizedTerm)) return false
+    seenTerms.add(normalizedTerm)
+    return true
+  }).slice(0, 8).map(({ sourceText, ...term }) => ({
+    ...term,
+    ...sourceFor(sourceText, sourceLines),
+  }))
+  questions = questions.slice(0, 10).map(({ sourceText, ...question }) => ({
     ...question,
-    ...sourceFor(question.answer, sourceLines),
+    ...sourceFor(sourceText || question.answer, sourceLines),
   }))
 
   return { title, summary, findings, keyTerms, questions }

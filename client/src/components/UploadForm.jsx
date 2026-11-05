@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { generateReviewer, isMockApiEnabled } from '../api/materials.js'
 import Button from './Button.jsx'
 import Spinner from './Spinner.jsx'
@@ -18,13 +19,13 @@ function withExtractionTimeout(extraction) {
 
 // Validates, scans, and reports the text of an uploaded PDF.
 export default function UploadForm({ onReviewerCreated }) {
+  const navigate = useNavigate()
   const [file, setFile] = useState(null)
   const [course, setCourse] = useState('')
   const [scanning, setScanning] = useState(false)
   const [scanProgress, setScanProgress] = useState(null)
   const [generating, setGenerating] = useState(false)
   const [error, setError] = useState('')
-  const [success, setSuccess] = useState('')
   const [extracted, setExtracted] = useState(null)
   const [canRetry, setCanRetry] = useState(false)
   const inputRef = useRef(null)
@@ -33,7 +34,6 @@ export default function UploadForm({ onReviewerCreated }) {
   function clearSelection() {
     setFile(null)
     setError('')
-    setSuccess('')
     setExtracted(null)
     setCanRetry(false)
     if (inputRef.current) inputRef.current.value = ''
@@ -44,7 +44,6 @@ export default function UploadForm({ onReviewerCreated }) {
     const selectedFile = event.target.files?.[0] ?? null
     setFile(selectedFile)
     setError('')
-    setSuccess('')
     setExtracted(null)
     setCanRetry(false)
 
@@ -76,7 +75,7 @@ export default function UploadForm({ onReviewerCreated }) {
         keyTerms: reviewer.keyTerms,
         reviewerTitle: reviewer.title,
       }, reviewer.questions)
-      setSuccess('Your source-grounded study guide is ready.')
+      navigate(`/materials/${pending.material.id}`)
       setFile(null)
       setExtracted(null)
       setCanRetry(false)
@@ -114,7 +113,6 @@ export default function UploadForm({ onReviewerCreated }) {
     }
 
     setError('')
-    setSuccess('')
     setScanning(true)
     setScanProgress(null)
     let pending = null
@@ -129,7 +127,7 @@ export default function UploadForm({ onReviewerCreated }) {
         content,
         material: {
           id: crypto.randomUUID(),
-          title: file.name,
+          title: file.name.replace(/\.pdf$/i, '').trim() || 'Study notes',
           course: course.trim(),
           content,
           uploadedAt: new Date().toISOString(),
@@ -181,7 +179,6 @@ export default function UploadForm({ onReviewerCreated }) {
         className="block w-full rounded-md border border-text/20 bg-surface p-tight text-small file:mr-tight file:rounded-md file:border-0 file:bg-bg file:px-tight file:py-1 file:font-bold file:text-text disabled:opacity-60"
       />
       {error && <p id="pdf-upload-error" className="text-small font-bold" role="alert">{error}</p>}
-      {success && <p className="text-small font-bold text-surface" role="status">{success}</p>}
       <div className="flex flex-wrap items-center gap-tight">
         {scanning && <Spinner label={scanProgress ? `Scanning page ${scanProgress.pageNumber} of ${scanProgress.totalPages}...` : 'Scanning your document...'} />}
         {generating && <Spinner label="Analyzing the PDF and checking source details..." />}
