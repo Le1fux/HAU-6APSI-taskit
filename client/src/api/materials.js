@@ -73,23 +73,23 @@ async function mockRemove(id) {
 }
 
 // Uses the local builder after the same short delay as other mock operations.
-async function mockGenerateReviewer(content, fileName) {
+async function mockGenerateReviewer(content, fileName, course) {
   await delay()
   const reviewer = buildReviewer(content, fileName)
   if (reviewer.error) {
     throw new Error("This PDF doesn't have enough readable content.")
   }
-  return reviewer
+  return { ...reviewer, course: course?.trim() || '' }
 }
 
 // Requests a reviewer and converts expected API errors into user-safe messages.
-async function requestReviewer(content) {
+async function requestReviewer(content, course) {
   let response
   try {
     response = await fetch(`${API_BASE_URL}/api/reviewer`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ content }),
+      body: JSON.stringify({ content, course }),
     })
   } catch {
     const error = new Error('We could not reach the analysis service. Please retry.')
@@ -177,6 +177,8 @@ export function remove(id) {
     : request(`/${encodeURIComponent(id)}`, { method: 'DELETE' })
 }
 
-export function generateReviewer(content, fileName) {
-  return USE_MOCK_API ? mockGenerateReviewer(content, fileName) : requestReviewer(content)
+export function generateReviewer(content, fileName, course = '') {
+  return USE_MOCK_API
+    ? mockGenerateReviewer(content, fileName, course)
+    : requestReviewer(content, course)
 }

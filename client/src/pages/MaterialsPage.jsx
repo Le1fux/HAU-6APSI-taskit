@@ -11,6 +11,8 @@ export default function MaterialsPage({ uploadedMaterials = [], onReviewerCreate
   const [error, setError] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
   const [sortBy, setSortBy] = useState('recent')
+  const [courseFilter, setCourseFilter] = useState('')
+  const [typeFilter, setTypeFilter] = useState('all')
 
   // Loads the existing material list from the current data source.
   async function loadMaterials() {
@@ -31,14 +33,45 @@ export default function MaterialsPage({ uploadedMaterials = [], onReviewerCreate
 
   const materials = [...uploadedMaterials, ...savedMaterials]
   const normalizedQuery = searchQuery.trim().toLowerCase()
+  const courses = [...new Set(materials.map((material) => material.course?.trim()).filter(Boolean))]
+    .sort((left, right) => left.localeCompare(right))
+  const hasAnalysis = (material) =>
+    (Array.isArray(material.summary) && material.summary.length > 0) ||
+    (Array.isArray(material.findings) && material.findings.length > 0)
   const visibleMaterials = materials
-    .filter((material) => `${material.title} ${material.content || ''}`.toLowerCase().includes(normalizedQuery))
+    .filter((material) => {
+      if (courseFilter && material.course?.trim() !== courseFilter) return false
+      if (typeFilter === 'guides' && !hasAnalysis(material)) return false
+      if (typeFilter === 'materials' && hasAnalysis(material)) return false
+      const searchableContent = [
+        material.title,
+        material.course,
+        material.content,
+        ...(Array.isArray(material.summary) ? material.summary : []),
+        ...(Array.isArray(material.findings) ? material.findings.map((finding) => finding.text) : []),
+        ...(Array.isArray(material.keyTerms) ? material.keyTerms.flatMap((term) => [term.term, term.definition]) : []),
+      ].filter(Boolean).join(' ').toLowerCase()
+      return searchableContent.includes(normalizedQuery)
+    })
     .sort((left, right) => {
       if (sortBy === 'title') return left.title.localeCompare(right.title)
       const leftDate = Date.parse(left.uploadedAt || left.uploaded_at || '') || 0
       const rightDate = Date.parse(right.uploadedAt || right.uploaded_at || '') || 0
       return sortBy === 'oldest' ? leftDate - rightDate : rightDate - leftDate
     })
+  const formatDate = (material) => {
+    const timestamp = Date.parse(material.uploadedAt || material.uploaded_at || '')
+    return Number.isNaN(timestamp)
+      ? 'Date unavailable'
+      : new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(timestamp)
+  }
+  const hasActiveFilters = Boolean(normalizedQuery || courseFilter || typeFilter !== 'all')
+
+  function clearFilters() {
+    setSearchQuery('')
+    setCourseFilter('')
+    setTypeFilter('all')
+  }
 
   return (
     <main className="mx-auto max-w-6xl px-5 py-10 lg:px-8 lg:py-14">
@@ -59,18 +92,41 @@ export default function MaterialsPage({ uploadedMaterials = [], onReviewerCreate
       <section aria-labelledby="materials-heading">
         <div className="mb-5 flex items-center justify-between">
           <h2 id="materials-heading" className="text-xl font-bold text-text">Your library</h2>
-          {!loading && !error && <span className="text-small text-slate-400">{visibleMaterials.length} of {materials.length} materials</span>}
+          {!loading && <span className="text-small text-slate-500">{visibleMaterials.length} of {materials.length} materials</span>}
         </div>
-        {!loading && !error && materials.length > 0 && <div className="mb-5 grid gap-3 sm:grid-cols-[minmax(0,1fr)_200px]">
-          <label>
-            <span className="sr-only">Search your library</span>
+        {!loading && materials.length > 0 && <div className="mb-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_minmax(150px,0.65fr)_minmax(150px,0.65fr)_minmax(150px,0.65fr)]">
+          <label className="sm:col-span-2 lg:col-span-1">
+            <span className="sr-only">Search titles, courses, and study topics</span>
             <input
               type="search"
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="Search titles and notes"
+              placeholder="Search titles, courses, and topics"
               className="w-full rounded-lg border border-text/20 bg-surface px-4 py-3 text-small text-text outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
             />
+          </label>
+          <label className="flex items-center gap-2 rounded-lg border border-text/20 bg-surface px-3 text-small text-text/70">
+            <span className="shrink-0">Type</span>
+            <select
+              value={typeFilter}
+              onChange={(event) => setTypeFilter(event.target.value)}
+              className="min-w-0 flex-1 bg-transparent py-3 font-bold text-text outline-none"
+            >
+              <option value="all">All items</option>
+              <option value="guides">PDF study guides</option>
+              <option value="materials">Other materials</option>
+            </select>
+          </label>
+          <label className="flex items-center gap-2 rounded-lg border border-text/20 bg-surface px-3 text-small text-text/70">
+            <span className="shrink-0">Course</span>
+            <select
+              value={courseFilter}
+              onChange={(event) => setCourseFilter(event.target.value)}
+              className="min-w-0 flex-1 bg-transparent py-3 font-bold text-text outline-none"
+            >
+              <option value="">All courses</option>
+              {courses.map((course) => <option key={course} value={course}>{course}</option>)}
+            </select>
           </label>
           <label className="flex items-center gap-2 rounded-lg border border-text/20 bg-surface px-3 text-small text-text/70">
             <span className="shrink-0">Sort</span>
@@ -86,27 +142,35 @@ export default function MaterialsPage({ uploadedMaterials = [], onReviewerCreate
           </label>
         </div>}
         {loading && <p className="text-text/70" role="status">Loading saved materials...</p>}
-        {!loading && error && <div className="mb-tight flex flex-wrap items-center gap-tight"><p className="text-small" role="alert">{error}</p><Button variant="secondary" onClick={loadMaterials}>Retry</Button></div>}
-        {!loading && !error && materials.length === 0 && <p className="text-slate-500">No materials yet. Create your first one above.</p>}
-        {!loading && materials.length > 0 && visibleMaterials.length === 0 && <div className="rounded-lg border border-dashed border-text/20 px-5 py-8 text-center">
-          <p className="text-text/70">No materials match “{searchQuery}”.</p>
-          <button type="button" onClick={() => setSearchQuery('')} className="mt-3 text-small font-bold text-primary hover:underline">Clear search</button>
+        {!loading && error && <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3">
+          <p className="text-small text-amber-950" role="alert">{error}</p>
+          <Button variant="secondary" onClick={loadMaterials}>Retry</Button>
         </div>}
-        {!loading && visibleMaterials.length > 0 && <div className="grid gap-4 md:grid-cols-2">
+        {!loading && materials.length === 0 && !error && <div className="rounded-2xl border border-dashed border-text/20 px-5 py-10 text-center">
+          <h3 className="font-bold text-text">Your library is ready for its first PDF</h3>
+          <p className="mt-2 text-small text-slate-500">Analyze a study PDF above to create a guide with key findings and practice questions.</p>
+        </div>}
+        {!loading && materials.length > 0 && visibleMaterials.length === 0 && <div className="rounded-lg border border-dashed border-text/20 px-5 py-8 text-center">
+          <p className="text-text/70">No materials match the current search and filters.</p>
+          {hasActiveFilters && <button type="button" onClick={clearFilters} className="mt-3 rounded px-2 py-1 text-small font-bold text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">Clear search and filters</button>}
+        </div>}
+        {visibleMaterials.length > 0 && <div className="grid gap-4 md:grid-cols-2">
           {visibleMaterials.map((material) => {
-            const preview = material.summary?.[0] || material.content || 'No notes added yet.'
+            const preview = material.summary?.[0] || material.findings?.[0]?.text || material.content || 'No preview available.'
             const materialCard = (
               <>
-              <div className="mb-8 flex items-start justify-between gap-4">
-                <span className="rounded-full bg-bg px-3 py-1 text-xs font-bold text-primary">{material.summary ? 'Scanned PDF' : 'Study material'}</span>
-                <span className="text-xs text-text/60">{new Date(material.uploadedAt || material.uploaded_at).toLocaleDateString()}</span>
+              <div className="mb-6 flex items-start justify-between gap-4">
+                <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary">{hasAnalysis(material) ? 'PDF study guide' : 'Study material'}</span>
+                <time dateTime={material.uploadedAt || material.uploaded_at} className="text-right text-xs text-text/60">{formatDate(material)}</time>
               </div>
-              <h3 className="text-xl font-bold text-text">{material.title}</h3>
-              <p className="mt-3 line-clamp-2 text-small text-text/70">{preview}</p>
+              <h3 className="text-xl font-bold leading-snug text-text">{material.title}</h3>
+              {material.course && <p className="mt-2 text-xs font-semibold text-primary">{material.course}</p>}
+              <p className="mt-3 line-clamp-3 text-small leading-6 text-text/70">{preview}</p>
+              <span className="mt-5 inline-block text-small font-bold text-primary transition group-hover:translate-x-1">Open study guide <span aria-hidden="true">→</span></span>
               </>
             )
 
-            return <Link key={material.id} to={`/materials/${material.id}`} className="group rounded-xl border border-text/15 bg-surface p-6 transition hover:border-primary">{materialCard}</Link>
+            return <Link key={material.id} to={`/materials/${material.id}`} aria-label={`Open ${material.title}${material.course ? `, ${material.course}` : ''}`} className="group rounded-xl border border-text/15 bg-surface p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-primary hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2">{materialCard}</Link>
           })}
         </div>}
       </section>

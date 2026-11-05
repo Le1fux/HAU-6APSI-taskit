@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { generateReviewer } from '../api/materials.js'
+import { generateReviewer, isMockApiEnabled } from '../api/materials.js'
 import Button from './Button.jsx'
 import Spinner from './Spinner.jsx'
 
@@ -19,6 +19,7 @@ function withExtractionTimeout(extraction) {
 // Validates, scans, and reports the text of an uploaded PDF.
 export default function UploadForm({ onReviewerCreated }) {
   const [file, setFile] = useState(null)
+  const [course, setCourse] = useState('')
   const [scanning, setScanning] = useState(false)
   const [scanProgress, setScanProgress] = useState(null)
   const [generating, setGenerating] = useState(false)
@@ -59,7 +60,7 @@ export default function UploadForm({ onReviewerCreated }) {
     setGenerating(true)
     setError('')
     try {
-      const reviewer = await generateReviewer(pending.content, pending.material.title)
+      const reviewer = await generateReviewer(pending.content, pending.material.title, pending.material.course)
       if (
         !Array.isArray(reviewer.summary) ||
         !Array.isArray(reviewer.findings) ||
@@ -107,6 +108,10 @@ export default function UploadForm({ onReviewerCreated }) {
       setError('This PDF is too large. Choose a file that is 10 MB or smaller.')
       return
     }
+    if (course.trim().length > 120) {
+      setError('Course name must be 120 characters or fewer.')
+      return
+    }
 
     setError('')
     setSuccess('')
@@ -125,6 +130,7 @@ export default function UploadForm({ onReviewerCreated }) {
         material: {
           id: crypto.randomUUID(),
           title: file.name,
+          course: course.trim(),
           content,
           uploadedAt: new Date().toISOString(),
         },
@@ -146,6 +152,22 @@ export default function UploadForm({ onReviewerCreated }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-tight text-text">
+      <label htmlFor="course-name" className="block text-body font-bold">Course or subject <span className="font-normal text-white/75">(optional)</span></label>
+      <input
+        id="course-name"
+        type="text"
+        value={course}
+        onChange={(event) => setCourse(event.target.value)}
+        maxLength={120}
+        placeholder="e.g. General Biology, Unit 3"
+        disabled={scanning || generating}
+        className="block w-full rounded-md border border-text/20 bg-surface px-3 py-2 text-small text-text outline-none placeholder:text-slate-400 focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:opacity-60"
+      />
+      <p className="text-small text-white/80">
+        {isMockApiEnabled
+          ? 'Course context is saved with the study guide. Offline demo mode does not use AI or web search.'
+          : 'Course context helps focus the guide. Automatic web search is not available; analysis uses your PDF only.'}
+      </p>
       <label htmlFor="pdf-upload" className="block text-body font-bold">Choose a text-based PDF (up to 10 MB)</label>
       <input
         ref={inputRef}

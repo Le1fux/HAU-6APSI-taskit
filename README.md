@@ -1,5 +1,5 @@
 # StudyLens
-StudyLens turns study PDFs into focused, source-grounded guides with specific findings, key terms, page citations, supporting excerpts, and practice questions.
+StudyLens turns study PDFs into focused, source-grounded guides with specific findings, key terms, page citations, supporting excerpts, and practice questions. Course or subject context is optional and helps focus the analysis; automatic web search is not available, and AI analysis uses the uploaded PDF as its only source.
 
 ## Intended user and problem
 
@@ -148,7 +148,7 @@ All API routes are defined in `server/server.js`. Database values are passed as 
 | `POST` | `/api/materials` | JSON body `{ "title": "...", "content": "..." }`; returns HTTP 201 and the inserted row. Title is required, max 200 characters; content max 10,000 characters. |
 | `PUT` | `/api/materials/:id` | JSON body with `title` and `content`; returns the updated row, HTTP 400 for an invalid ID, or HTTP 404. Uses the same validation as POST. |
 | `DELETE` | `/api/materials/:id` | Deletes a material; returns HTTP 204, HTTP 400 for an invalid ID, or HTTP 404. |
-| `POST` | `/api/reviewer` | JSON body `{ "content": "extracted PDF text" }`; requires `ANTHROPIC_API_KEY`. Returns a summary, detailed findings, key terms, and practice questions with page numbers and excerpts verified against the submitted text. |
+| `POST` | `/api/reviewer` | JSON body `{ "content": "extracted PDF text", "course": "optional course name" }`; requires `ANTHROPIC_API_KEY`. Returns a summary, detailed findings, key terms, and practice questions with page numbers and excerpts verified against the submitted text. |
 
 No questions API currently exists. The API's default error middleware logs server details and returns a generic HTTP 500 response.
 
