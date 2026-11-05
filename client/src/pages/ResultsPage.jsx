@@ -1,5 +1,6 @@
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { getFallbackQuestions } from '../utils/fallbackQuestions.js'
+import { getBuiltInQuestions } from '../data/builtInMaterials.js'
 
 // Displays the score and source evidence for questions missed in this attempt.
 export default function ResultsPage({
@@ -13,7 +14,12 @@ export default function ResultsPage({
   const missedIds = Object.keys(answers).filter((questionId) => !answers[questionId])
   const answeredQuestionIds = Object.keys(answers)
   const savedQuestions = questions.filter((question) => String(question.materialId) === String(id))
-  const attemptQuestions = savedQuestions.length ? savedQuestions : getFallbackQuestions(id)
+  const builtInQuestions = getBuiltInQuestions(id)
+  const attemptQuestions = savedQuestions.length
+    ? savedQuestions
+    : builtInQuestions.length
+      ? builtInQuestions
+      : getFallbackQuestions(id)
   const missedQuestions = attemptQuestions.filter((question) => missedIds.includes(question.id))
   const total = attemptQuestions.length
   const attemptComplete = total > 0 &&
@@ -29,9 +35,9 @@ export default function ResultsPage({
 
   return (
     <main className="mx-auto max-w-4xl px-5 py-10 lg:px-8 lg:py-14">
-      <Link to={`/materials/${id}`} className="text-small font-bold text-primary hover:underline">&lt;- Back to study guide</Link>
+      <Link to={`/materials/${id}`} className="text-small font-bold text-primary hover:underline">&lt;- Back to reviewer</Link>
       <section className="mt-8 rounded-2xl bg-primary p-8 text-white shadow-soft sm:p-10">
-        <p className="text-small font-bold uppercase tracking-[0.16em] text-white/80">Quiz complete</p>
+        <p className="text-small font-bold uppercase tracking-[0.16em] text-white/80">Practice quiz complete</p>
         <div className="mt-5 flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
           <div>
             <h1 className="text-4xl font-bold">{percentage === 100 ? 'Excellent work.' : 'Keep building recall.'}</h1>

@@ -75,10 +75,10 @@ app.get('/readyz', async (request, response) => {
   }
 })
 
-const REVIEWER_SYSTEM_PROMPT = `You are StudyLens, a meticulous study-document analyst. You receive text extracted
-from a student's PDF. Page boundaries appear as [[PAGE N]] markers. Analyze
-the material closely and create a precise, useful study guide based ONLY on
-the supplied document.
+const REVIEWER_SYSTEM_PROMPT = `You are StudyLens, a meticulous learning-material analyst. You receive text
+extracted from a user's PDF. Page boundaries appear as [[PAGE N]] markers.
+Analyze the material closely and create a precise, useful study guide based
+ONLY on the supplied document.
 
 OUTPUT FORMAT
 Return ONLY valid JSON. No markdown, no code fences, no text before or after.

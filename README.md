@@ -1,9 +1,9 @@
 # StudyLens
-StudyLens turns study PDFs into focused, source-grounded guides with specific findings, key terms, page citations, supporting excerpts, and practice questions. Course or subject context is optional and helps focus the analysis; automatic web search is not available, and AI analysis uses the uploaded PDF as its only source.
+StudyLens is a general PDF reviewer that creates focused, source-grounded study guides with specific findings, key terms, page citations, supporting excerpts, and practice questions. Its built-in library includes a sample Business Board Exam Reviewer. Course or subject context is optional and helps focus PDF analysis; automatic web search is not available, and AI analysis uses the uploaded PDF as its only source.
 
 ## Intended user and problem
 
-StudyLens is for students who want to understand their class material in detail and verify study takeaways against the original PDF. AI-powered analysis requires the server API and an Anthropic API key; the default local demo mode generates a lightweight text-based outline.
+StudyLens is for learners who want to understand material in detail and verify study takeaways against the original PDF. The built-in Business Board Exam Reviewer is an illustrative sample, not an official exam blueprint. AI-powered analysis requires the server API and an Anthropic API key; the default local mode generates a lightweight text-based reviewer.
 
 ## Technology stack
 
@@ -58,7 +58,7 @@ From the terminal already in `server/`, run the server script. It executes the c
 npm run db:reset
 ```
 
-`db:reset` runs `db:schema.sql` and then `db:seed.sql`. The seed script truncates and repopulates `materials`; use it only against a development database because it removes existing material rows.
+`db:reset` runs `db:schema.sql` and then `db:seed.sql`. The seed script clears `materials` and leaves the development library empty; use it only against a development database because it removes existing material rows.
 
 ## Environment variables
 
@@ -71,7 +71,7 @@ npm run db:reset
 | `server/.env` - `ANTHROPIC_MODEL` | AI-powered PDF analysis | Optional; defaults to `claude-haiku-4-5-20251001`. |
 | `BASIC_AUTH_USER`, `BASIC_AUTH_PASS` | Optional local access gate; required together, and required in production | Set as protected host environment variables. Do not commit credentials. |
 | `PORT` | API runtime | Optional; defaults to `3000`. Do not set it in the local example unless you need a different port. |
-| `client/.env` - `VITE_USE_MOCK_API` | Client data source, compiled at build time | `true` uses the in-memory sample materials; set to exact `false` to call the API. |
+| `client/.env` - `VITE_USE_MOCK_API` | Client data source, compiled at build time | `true` uses the in-memory reviewer library; set to exact `false` to call the API. The built-in Business Board Exam sample is included in either mode. |
 | `client/.env` - `VITE_API_BASE_URL` | Client live API mode | `http://localhost:3000`; no trailing slash. Ignored in mock mode. |
 | root `.env` - `POSTGRES_PASSWORD` | Optional Docker Compose setup | Local-only PostgreSQL password; replace the example before starting Compose. |
 | root `.env` - `CORS_ORIGINS` | Optional Docker Compose setup | `http://localhost:5173`. |
@@ -105,13 +105,13 @@ npm install
 Copy-Item .env.example .env
 ```
 
-For detailed AI analysis, add your Anthropic API key to `server/.env`, then edit `client/.env` and set `VITE_USE_MOCK_API=false` and `VITE_API_BASE_URL=http://localhost:3000`. The server analyzes up to 30 PDF pages and 15,000 extracted characters. Then run:
+For detailed AI analysis, add your Anthropic API key to `server/.env`, then edit `client/.env` and set `VITE_USE_MOCK_API=false` and `VITE_API_BASE_URL=http://localhost:3000`. The server analyzes up to 30 PDF pages and 15,000 extracted characters. Enter a course or subject when it helps focus the analysis. Then run:
 
 ```powershell
 npm run dev
 ```
 
-Open `http://localhost:5173`. In live mode, PDF findings, key terms, and practice questions include page references and supporting excerpts. In mock mode, two sample records are provided in memory and PDF analysis uses a lightweight local text heuristic; locally created records disappear on a full page reload. The mock mode does not use PostgreSQL or AI.
+Open `http://localhost:5173`. In either mode, the library includes the built-in Business Board Exam Reviewer sample. In live mode, uploaded PDF findings, key terms, and practice questions include page references and supporting excerpts. In mock mode, PDF analysis uses a lightweight local text heuristic; locally created records disappear on a full page reload. The mock mode does not use PostgreSQL or AI.
 
 For the client alone, leave `VITE_USE_MOCK_API=true`; no server or database is needed.
 
@@ -129,7 +129,7 @@ Compose creates database `taskit`, mounts the schema and seed scripts for first-
 
 ## Implemented features and limitations
 
-**Implemented:** four React Router screens; responsive StudyLens styling; materials list loading; PDF text extraction with page boundaries; local and AI-powered reviewer modes; source-grounded findings, key terms, and cited questions in AI mode; server-side material and ID validation; optional HTTP Basic access gate; PostgreSQL materials schema; and materials CRUD route implementations.
+**Implemented:** four React Router screens; responsive StudyLens styling; a built-in Business Board Exam Reviewer sample; reviewer list loading; PDF text extraction with page boundaries; local and AI-powered general reviewer modes; source-grounded findings, key terms, and cited questions in AI mode; server-side material and ID validation; optional HTTP Basic access gate; PostgreSQL materials schema; and materials CRUD route implementations.
 
 **Partial or mock-only:** the mock material store exists only in JavaScript memory, not localStorage. The Materials form sends empty content because it has no content editor. Material detail displays three generic hardcoded practice questions. Quiz uses hardcoded questions and a generic revealed answer; its index, revealed state, and score stay local to that page. Results displays fixed sample score, missed-question, and attempt-history content, not data from the latest quiz.
 
@@ -148,7 +148,7 @@ All API routes are defined in `server/server.js`. Database values are passed as 
 | `POST` | `/api/materials` | JSON body `{ "title": "...", "content": "..." }`; returns HTTP 201 and the inserted row. Title is required, max 200 characters; content max 10,000 characters. |
 | `PUT` | `/api/materials/:id` | JSON body with `title` and `content`; returns the updated row, HTTP 400 for an invalid ID, or HTTP 404. Uses the same validation as POST. |
 | `DELETE` | `/api/materials/:id` | Deletes a material; returns HTTP 204, HTTP 400 for an invalid ID, or HTTP 404. |
-| `POST` | `/api/reviewer` | JSON body `{ "content": "extracted PDF text", "course": "optional course name" }`; requires `ANTHROPIC_API_KEY`. Returns a summary, detailed findings, key terms, and practice questions with page numbers and excerpts verified against the submitted text. |
+| `POST` | `/api/reviewer` | JSON body `{ "content": "extracted PDF text", "course": "optional course or subject" }`; requires `ANTHROPIC_API_KEY`. Returns a summary, detailed findings, key terms, and practice questions with page numbers and excerpts verified against the submitted text. |
 
 No questions API currently exists. The API's default error middleware logs server details and returns a generic HTTP 500 response.
 
@@ -164,7 +164,7 @@ client/                  React/Vite frontend
   .env.example           Client build-time settings
 server/                  Express/PostgreSQL API
   db/schema.sql          materials table and index
-  db/seed.sql            development materials; truncates before seeding
+  db/seed.sql            clears development materials; starts with an empty library
   db/run.js              executes SQL through pg
   db/pool.js             PostgreSQL pool configuration
   materialsRepo.js       parameterized materials CRUD

@@ -1,23 +1,11 @@
 import { buildReviewer } from '../utils/buildReviewer.js'
+import { getBuiltInMaterial, getBuiltInMaterials } from '../data/builtInMaterials.js'
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '')
 const USE_MOCK_API = import.meta.env.VITE_USE_MOCK_API !== 'false'
 export const isMockApiEnabled = USE_MOCK_API
 
-const mockMaterials = [
-  {
-    id: 'javascript-fundamentals',
-    title: 'JavaScript Fundamentals',
-    content: 'Review variables, data types, functions, conditionals, and loops. Practice how values move through a program and how functions organize reusable logic.',
-    uploaded_at: '2026-09-27T00:00:00.000Z',
-  },
-  {
-    id: 'data-structures',
-    title: 'Data Structures and Algorithms',
-    content: 'Study arrays, linked lists, stacks, queues, and hash maps. Compare common search and sort algorithms by their behavior and time complexity.',
-    uploaded_at: '2026-09-26T00:00:00.000Z',
-  },
-]
+const mockMaterials = []
 
 const delay = (ms = 300) => new Promise((resolve) => setTimeout(resolve, ms))
 
@@ -35,12 +23,14 @@ function createMockId(title) {
 
 async function mockGetAll() {
   await delay()
-  return mockMaterials.slice().sort((a, b) => b.uploaded_at.localeCompare(a.uploaded_at))
+  const uploadedAt = (material) => Date.parse(material.uploaded_at || '') || 0
+  return [...getBuiltInMaterials(), ...mockMaterials]
+    .sort((a, b) => uploadedAt(b) - uploadedAt(a))
 }
 
 async function mockGetById(id) {
   await delay()
-  const material = findMockMaterial(id)
+  const material = getBuiltInMaterial(id) || findMockMaterial(id)
   if (!material) throw new Error('Material not found')
   return { ...material }
 }
@@ -149,12 +139,17 @@ async function request(path, options = {}) {
 }
 
 export function getAll() {
-  return USE_MOCK_API ? mockGetAll() : request('')
+  if (USE_MOCK_API) return mockGetAll()
+  return request('').then((materials) => [...getBuiltInMaterials(), ...materials])
 }
 
 export function getById(id) {
-  return USE_MOCK_API ? mockGetById(id) : request(`/${encodeURIComponent(id)}`)
+  if (USE_MOCK_API) return mockGetById(id)
+  const builtInMaterial = getBuiltInMaterial(id)
+  return builtInMaterial ? Promise.resolve(builtInMaterial) : request(`/${encodeURIComponent(id)}`)
 }
+
+export { getBuiltInQuestions } from '../data/builtInMaterials.js'
 
 export function create({ title, content }) {
   return USE_MOCK_API

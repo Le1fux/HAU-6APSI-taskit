@@ -35,7 +35,7 @@ export default function App() {
     })
   }
 
-  // Clears only a completed attempt before starting another from the study guide.
+  // Clears only a completed attempt before starting another from the reviewer.
   function startQuiz(materialId, attemptComplete) {
     if (!attemptComplete) return
     setAnswersByMaterial((currentAnswers) => {

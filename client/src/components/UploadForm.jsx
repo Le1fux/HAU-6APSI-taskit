@@ -157,14 +157,14 @@ export default function UploadForm({ onReviewerCreated }) {
         value={course}
         onChange={(event) => setCourse(event.target.value)}
         maxLength={120}
-        placeholder="e.g. General Biology, Unit 3"
+        placeholder="e.g. Biology, Unit 3"
         disabled={scanning || generating}
         className="block w-full rounded-md border border-text/20 bg-surface px-3 py-2 text-small text-text outline-none placeholder:text-slate-400 focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:opacity-60"
       />
       <p className="text-small text-white/80">
         {isMockApiEnabled
-          ? 'Course context is saved with the study guide. Offline demo mode does not use AI or web search.'
-          : 'Course context helps focus the guide. Automatic web search is not available; analysis uses your PDF only.'}
+          ? 'Course context is saved with the reviewer. Offline mode does not use AI or web search.'
+          : 'Course context helps focus the reviewer. Automatic web search is not available; analysis uses your PDF only.'}
       </p>
       <label htmlFor="pdf-upload" className="block text-body font-bold">Choose a text-based PDF (up to 10 MB)</label>
       <input
@@ -181,7 +181,7 @@ export default function UploadForm({ onReviewerCreated }) {
       {error && <p id="pdf-upload-error" className="text-small font-bold" role="alert">{error}</p>}
       <div className="flex flex-wrap items-center gap-tight">
         {scanning && <Spinner label={scanProgress ? `Scanning page ${scanProgress.pageNumber} of ${scanProgress.totalPages}...` : 'Scanning your document...'} />}
-        {generating && <Spinner label="Analyzing the PDF and checking source details..." />}
+        {generating && <Spinner label="Building your study guide and checking source details..." />}
         {!scanning && !generating && !extracted && <Button type="submit" disabled={!file || Boolean(error)}>Analyze PDF</Button>}
         {!scanning && !generating && extracted && canRetry && <Button type="button" onClick={() => generateFromExtracted(extracted)}>Retry analysis</Button>}
         {file && !scanning && !generating && <Button type="button" variant="secondary" onClick={clearSelection}>Choose another PDF</Button>}

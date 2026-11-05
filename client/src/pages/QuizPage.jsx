@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { getFallbackQuestions } from '../utils/fallbackQuestions.js'
+import { getBuiltInQuestions } from '../data/builtInMaterials.js'
 
 // Runs one question at a time and resumes the first unanswered question.
 export default function QuizPage({
@@ -16,9 +17,12 @@ export default function QuizPage({
   const score = Object.values(answers).filter(Boolean).length
   const answeredQuestionIds = Object.keys(answers)
   const materialQuestions = questions.filter((question) => String(question.materialId) === String(id))
+  const builtInQuestions = getBuiltInQuestions(id)
   const quizQuestions = materialQuestions.length
     ? materialQuestions
-    : getFallbackQuestions(id)
+    : builtInQuestions.length
+      ? builtInQuestions
+      : getFallbackQuestions(id)
   const [currentIndex, setCurrentIndex] = useState(() =>
     location.state?.retry
       ? 0

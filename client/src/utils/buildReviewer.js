@@ -80,6 +80,48 @@ function findExplicitTerms(text) {
   return terms
 }
 
+function getSentences(text) {
+  return uniqueByLetters(text.split(/(?<=[.!?])\s+/)
+    .map((sentence) => sentence.trim())
+    .filter((sentence) => sentence.length >= 40 && sentence.length <= 350))
+}
+
+function extractProseTerms(sentences) {
+  const terms = []
+  const genericSubjects = new Set([
+    'it', 'this', 'that', 'these', 'those', 'they', 'there', 'the process',
+    'this process', 'the system', 'this system', 'the result', 'this result',
+  ])
+  const acronymPattern = /\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,3}\s+\([A-Z][A-Z0-9]{1,}\))/g
+
+  for (const sentence of sentences) {
+    for (const match of sentence.matchAll(acronymPattern)) {
+      const term = match[1].replace(/^(?:A|An|The)\s+/, '')
+      terms.push({ term, definition: sentence, sourceText: sentence })
+    }
+
+    const definition = sentence.match(/^(.{2,60}?)\s+(?:is|are|means|refers to)\s+(.+?)[.!?]?$/i)
+    if (definition) {
+      const term = definition[1].trim().replace(/^(?:A|An|The)\s+/, '')
+      const normalizedTerm = term.toLowerCase()
+      if (
+        term.split(/\s+/).length <= 6 &&
+        !/\([A-Z][A-Z0-9]{1,}\)/.test(term) &&
+        !genericSubjects.has(normalizedTerm) &&
+        !/^(?:it|this|that|these|those|they|there)\b/i.test(term)
+      ) {
+        terms.push({
+          term,
+          definition: definition[2].trim(),
+          sourceText: sentence,
+        })
+      }
+    }
+  }
+
+  return terms
+}
+
 function deduplicateFacts(facts) {
   const seen = new Set()
   return facts.filter(({ statement }) => {
@@ -179,7 +221,13 @@ function makeSentenceQuestions(sentences) {
     'depends on': 'depend on',
     'depend on': 'depend on',
   }
-  const actionPattern = /^(.+?)\s+(breaks down|break down|depends on|depend on|converts|convert|absorbs|absorb|enters|enter|uses|use|produces|produce|releases|release|provides|provide|connects|connect|forwards|forward|identifies|identify|translates|translate|defines|define|causes|cause|increases|increase|decreases|decrease|requires|require|contains|contain|includes|include|encrypts|encrypt|learns|learn|moves|move|receives|receive|sends|send|stores|store)\s+(.+)[.!?]?$/i
+  const actionPattern = new RegExp(
+    `^(.+?)\\s+(${Object.keys(baseVerbs)
+      .sort((left, right) => right.length - left.length)
+      .map((verb) => verb.replace(/\s+/g, '\\s+'))
+      .join('|')})\\s+(.+)[.!?]?$`,
+    'i'
+  )
 
   function lowerInitial(text) {
     const firstWord = text.match(/^\S+/)?.[0] || ''
@@ -215,8 +263,12 @@ function makeSentenceQuestions(sentences) {
         question = `Where does ${lowerInitial(subject)} enter?`
         answer = object
       } else if (explanation) {
-        const auxiliary = auxiliaryFor(subject)
-        question = `How ${auxiliary} ${lowerInitial(subject)} ${baseVerbs[verb]} ${object}?`
+        if (/^(?:it|they|this|these|those)\s+(?:can|may|might|could|will|would)\b/i.test(explanation)) {
+          question = `What can happen when ${lowerInitial(subject)} ${verb} ${object}?`
+        } else {
+          const auxiliary = auxiliaryFor(subject)
+          question = `How ${auxiliary} ${lowerInitial(subject)} ${baseVerbs[verb]} ${object}?`
+        }
         answer = explanation
       } else {
         const auxiliary = auxiliaryFor(subject)
@@ -238,9 +290,7 @@ function makeSentenceQuestions(sentences) {
 }
 
 function makeSentenceSummary(text) {
-  const sentences = uniqueByLetters(text.split(/(?<=[.!?])\s+/)
-    .map((sentence) => sentence.trim())
-    .filter((sentence) => sentence.length >= 40 && sentence.length <= 350))
+  const sentences = getSentences(text)
   const frequency = new Map()
   for (const word of wordsIn(text)) {
     if (word.length >= 4 && !STOP_WORDS.has(word)) {
@@ -328,6 +378,7 @@ export function buildReviewer(text, fileName) {
   const sourceLines = getSourceLines(text)
   const lines = sourceLines.map(({ text: line }) => line)
   const cleanText = lines.join(' ')
+  const proseSentences = getSentences(cleanText)
   const title = (fileName || 'Study notes').replace(/\.pdf$/i, '').replace(/\s+/g, ' ').trim()
   const pairedFacts = deduplicateFacts(parseFactPairs(lines))
   const numberedFacts = pairedFacts.length ? pairedFacts : deduplicateFacts(parseNumberedFacts(lines))
@@ -356,7 +407,7 @@ export function buildReviewer(text, fileName) {
       ? makeSentenceQuestions(numberedFacts)
       : facts.length
         ? makeLabeledFactQuestions(facts)
-        : makeSentenceQuestions(makeSentenceSummary(cleanText))
+        : makeSentenceQuestions(proseSentences)
 
   const findings = summary.slice(0, 8).map((finding) => ({
     text: finding,
@@ -371,10 +422,13 @@ export function buildReviewer(text, fileName) {
     ...numberedFacts.flatMap(({ statement, explanation }) =>
       findExplicitTerms(statement).map((term) => ({
         term,
-        definition: explanation || statement,
+        definition: explanation && !/^(?:it|they|this|these|those)\b/i.test(explanation)
+          ? explanation
+          : statement,
         sourceText: statement,
       }))
     ),
+    ...extractProseTerms(proseSentences),
   ]
   const expandedAcronyms = new Set(explicitTerms.flatMap(({ term }) => {
     const acronym = term.match(/\(([A-Z][A-Z0-9]{1,})\)$/)
