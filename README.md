@@ -1,10 +1,10 @@
-# TaskIt
+# StudyLens
 
-TaskIt is a study-materials and practice-quiz application for college students. It is intended to make exam review easier by organizing a student's notes in one place and giving them a route toward self-testing instead of rereading alone.
+StudyLens turns study PDFs into focused, source-grounded guides with specific findings, key terms, page citations, supporting excerpts, and practice questions.
 
 ## Intended user and problem
 
-TaskIt is for a college student who wants to review their own class notes before an exam without manually rebuilding every note as flashcards. The current increment establishes the materials workflow and the visual structure for practice; question authoring and saved quiz attempts remain future work.
+StudyLens is for students who want to understand their class material in detail and verify study takeaways against the original PDF. AI-powered analysis requires the server API and an Anthropic API key; the default local demo mode generates a lightweight text-based outline.
 
 ## Technology stack
 
@@ -68,6 +68,8 @@ npm run db:reset
 | `server/.env` - `DATABASE_URL` | Optional for database routes and scripts | `postgresql://postgres:devpassword@localhost:5432/taskit`; replace username/password for your machine. Without it, only the reviewer and health routes work. |
 | `server/.env` - `CORS_ORIGINS` | API requests from browsers | `http://localhost:5173`; comma-separated origins, no path or trailing slash. |
 | `server/.env` - `NODE_ENV` | API runtime | `development` locally; set `production` in a production host's environment. |
+| `server/.env` - `ANTHROPIC_API_KEY` | AI-powered PDF analysis | Set your key in the server's ignored `.env` file or protected host settings. Never put it in a `VITE_` variable. |
+| `server/.env` - `ANTHROPIC_MODEL` | AI-powered PDF analysis | Optional; defaults to `claude-haiku-4-5-20251001`. |
 | `BASIC_AUTH_USER`, `BASIC_AUTH_PASS` | Optional local access gate; required together, and required in production | Set as protected host environment variables. Do not commit credentials. |
 | `PORT` | API runtime | Optional; defaults to `3000`. Do not set it in the local example unless you need a different port. |
 | `client/.env` - `VITE_USE_MOCK_API` | Client data source, compiled at build time | `true` uses the in-memory sample materials; set to exact `false` to call the API. |
@@ -104,13 +106,13 @@ npm install
 Copy-Item .env.example .env
 ```
 
-To use the API, edit `client/.env` and set `VITE_USE_MOCK_API=false` and `VITE_API_BASE_URL=http://localhost:3000`. Then run:
+For detailed AI analysis, add your Anthropic API key to `server/.env`, then edit `client/.env` and set `VITE_USE_MOCK_API=false` and `VITE_API_BASE_URL=http://localhost:3000`. The server analyzes up to 30 PDF pages and 15,000 extracted characters. Then run:
 
 ```powershell
 npm run dev
 ```
 
-Open `http://localhost:5173`. In live mode, the Materials screen should display the seeded records and a newly submitted title should appear after the API creates it. In mock mode, two sample records are provided in memory; locally created records disappear on a full page reload. The mock mode does not use PostgreSQL.
+Open `http://localhost:5173`. In live mode, PDF findings, key terms, and practice questions include page references and supporting excerpts. In mock mode, two sample records are provided in memory and PDF analysis uses a lightweight local text heuristic; locally created records disappear on a full page reload. The mock mode does not use PostgreSQL or AI.
 
 For the client alone, leave `VITE_USE_MOCK_API=true`; no server or database is needed.
 
@@ -128,7 +130,7 @@ Compose creates database `taskit`, mounts the schema and seed scripts for first-
 
 ## Implemented features and limitations
 
-**Implemented:** four React Router screens; responsive Tailwind layout; materials list loading; title-only material creation; material detail loading; mock/live API selection; server-side material and ID validation; optional HTTP Basic access gate; PostgreSQL materials schema; and materials CRUD route implementations.
+**Implemented:** four React Router screens; responsive StudyLens styling; materials list loading; PDF text extraction with page boundaries; local and AI-powered reviewer modes; source-grounded findings, key terms, and cited questions in AI mode; server-side material and ID validation; optional HTTP Basic access gate; PostgreSQL materials schema; and materials CRUD route implementations.
 
 **Partial or mock-only:** the mock material store exists only in JavaScript memory, not localStorage. The Materials form sends empty content because it has no content editor. Material detail displays three generic hardcoded practice questions. Quiz uses hardcoded questions and a generic revealed answer; its index, revealed state, and score stay local to that page. Results displays fixed sample score, missed-question, and attempt-history content, not data from the latest quiz.
 
@@ -147,6 +149,7 @@ All API routes are defined in `server/server.js`. Database values are passed as 
 | `POST` | `/api/materials` | JSON body `{ "title": "...", "content": "..." }`; returns HTTP 201 and the inserted row. Title is required, max 200 characters; content max 10,000 characters. |
 | `PUT` | `/api/materials/:id` | JSON body with `title` and `content`; returns the updated row, HTTP 400 for an invalid ID, or HTTP 404. Uses the same validation as POST. |
 | `DELETE` | `/api/materials/:id` | Deletes a material; returns HTTP 204, HTTP 400 for an invalid ID, or HTTP 404. |
+| `POST` | `/api/reviewer` | JSON body `{ "content": "extracted PDF text" }`; requires `ANTHROPIC_API_KEY`. Returns a summary, detailed findings, key terms, and practice questions with page numbers and excerpts verified against the submitted text. |
 
 No questions API currently exists. The API's default error middleware logs server details and returns a generic HTTP 500 response.
 
@@ -170,22 +173,13 @@ server/                  Express/PostgreSQL API
 compose.yml              optional PostgreSQL and API services
 .env.example             local Compose placeholders; copy to ignored root .env
 .dockerignore            excludes local env, dependencies, and build output from image context
-project/                 M8A4 report and security checklist
-docs/                    proposal, mockup, design, journals, reports
-  assets/README.md       screenshot capture checklist; no screenshots yet
+docs/                    weekly project log
+project/REPORT.md         project increment report
 ```
 
 ## Screenshots
 
-No application screenshots are currently present. Do not treat the wireframe or this README as screenshot evidence. Before submission, capture actual running screens and add them under `docs/assets/`:
-
-- Materials screen with sample materials and its title-only create form.
-- Material Detail screen showing stored material content and the current hardcoded question list.
-- Quiz screen with the revealed-answer state and self-grading controls.
-- Results screen, clearly showing that its current score/history are placeholders.
-- At least one phone-width capture if the submission requires mobile evidence.
-
-See [`docs/assets/README.md`](docs/assets/README.md) for the capture checklist.
+No application screenshots are currently included.
 
 ## Known issues and next steps
 
@@ -193,11 +187,5 @@ See [`docs/assets/README.md`](docs/assets/README.md) for the capture checklist.
 2. Implement question CRUD and connect questions to a material.
 3. Lift or persist quiz attempt state so Results reflects the actual score and missed questions.
 4. Configure `BASIC_AUTH_USER` and `BASIC_AUTH_PASS` on the production host before exposing private student material through a public API.
-5. Capture real desktop and mobile screenshots and verify keyboard access, responsive layouts, and contrast.
+5. Verify keyboard access, responsive layouts, and contrast.
 6. Run a full local PostgreSQL/API/client integration test; it has not been verified as part of this update.
-
-## AI assistance
-
-AI assistance was used during project setup, frontend scaffolding, and documentation work; this is also recorded in [`AI-USAGE.md`](AI-USAGE.md). The detailed usage log is incomplete and still needs the author's verified entries and attribution before final submission.
-
-![Built with AI assistance](https://img.shields.io/badge/built%20with-AI%20assistance-0b5fff)

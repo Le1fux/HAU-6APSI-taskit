@@ -2,6 +2,7 @@ import { buildReviewer } from '../utils/buildReviewer.js'
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '')
 const USE_MOCK_API = import.meta.env.VITE_USE_MOCK_API !== 'false'
+export const isMockApiEnabled = USE_MOCK_API
 
 const mockMaterials = [
   {
@@ -91,7 +92,7 @@ async function requestReviewer(content) {
       body: JSON.stringify({ content }),
     })
   } catch {
-    const error = new Error('We could not reach the reviewer service. Please retry.')
+    const error = new Error('We could not reach the analysis service. Please retry.')
     error.isReviewerError = true
     throw error
   }
@@ -104,7 +105,7 @@ async function requestReviewer(content) {
       // Preserve a friendly status-based message when the response is not JSON.
     }
 
-    let message = 'We could not generate your reviewer. Please retry.'
+    let message = 'We could not generate your study guide. Please retry.'
     if (response.status === 422) {
       message = "This PDF doesn't have enough readable content."
     } else if (body?.code === 'ANTHROPIC_API_KEY_MISSING') {

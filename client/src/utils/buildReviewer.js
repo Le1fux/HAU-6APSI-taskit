@@ -167,15 +167,41 @@ function makeSentenceSummary(text) {
     .map(({ sentence }) => trimText(sentence, 200))
 }
 
+function getSourceLines(text) {
+  let page = null
+  const lines = []
+
+  for (const rawLine of text.split(/\r?\n/)) {
+    const pageMarker = rawLine.match(/^\s*\[\[PAGE\s+(\d+)\]\]\s*$/i)
+    if (pageMarker) {
+      page = Number(pageMarker[1])
+      continue
+    }
+    const line = rawLine.replace(/\s+/g, ' ').trim()
+    if (line && !/page\s+\d+\s+of\s+\d+/i.test(line)) lines.push({ text: line, page })
+  }
+
+  return lines
+}
+
+function sourceFor(text, sourceLines) {
+  const normalized = text.toLowerCase().replace(/\s+/g, ' ').trim()
+  const source = sourceLines.find(({ text: line }) =>
+    line.toLowerCase().replace(/\s+/g, ' ').includes(normalized)
+  )
+  return source
+    ? { page: source.page, evidence: trimText(source.text, 280) }
+    : { page: null, evidence: '' }
+}
+
 // Builds a local reviewer without external services.
 export function buildReviewer(text, fileName) {
   if (typeof text !== 'string' || text.trim().length < 100) {
     return { error: 'Not enough readable content.' }
   }
 
-  const lines = text.split(/\r?\n/)
-    .map((line) => line.replace(/\s+/g, ' ').trim())
-    .filter((line) => line && !/page\s+\d+\s+of\s+\d+/i.test(line))
+  const sourceLines = getSourceLines(text)
+  const lines = sourceLines.map(({ text: line }) => line)
   const cleanText = lines.join(' ')
   const title = (fileName || 'Study notes').replace(/\.pdf$/i, '').replace(/\s+/g, ' ').trim()
   const pairedFacts = deduplicateFacts(parseFactPairs(lines))
@@ -192,7 +218,7 @@ export function buildReviewer(text, fileName) {
     summary = makeSentenceSummary(cleanText)
   }
 
-  const questions = pairedFacts.length ? makeFactQuestions(facts) : makeLabeledFactQuestions(facts)
+  let questions = pairedFacts.length ? makeFactQuestions(facts) : makeLabeledFactQuestions(facts)
   if (facts.length === 0) {
     for (const sentence of makeSentenceSummary(cleanText)) {
       if (questions.length >= 10) break
@@ -204,7 +230,22 @@ export function buildReviewer(text, fileName) {
     }
   }
 
-  return { title, summary, questions: questions.slice(0, 10) }
+  const findings = summary.slice(0, 8).map((finding) => ({
+    text: finding,
+    ...sourceFor(finding, sourceLines),
+  }))
+  const labeledFacts = deduplicateFacts(parseLabeledFacts(lines))
+  const keyTerms = labeledFacts.slice(0, 8).map(({ statement, explanation }) => ({
+    term: statement,
+    definition: explanation,
+    ...sourceFor(`${statement}: ${explanation}`, sourceLines),
+  }))
+  questions = questions.slice(0, 10).map((question) => ({
+    ...question,
+    ...sourceFor(question.answer, sourceLines),
+  }))
+
+  return { title, summary, findings, keyTerms, questions }
 }
 
 export default buildReviewer

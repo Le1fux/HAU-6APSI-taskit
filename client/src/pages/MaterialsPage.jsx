@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Button from '../components/Button.jsx'
 import UploadForm from '../components/UploadForm.jsx'
-import { getAll } from '../api/materials.js'
+import { getAll, isMockApiEnabled } from '../api/materials.js'
 
 // Shows saved materials and accepts new PDF uploads.
 export default function MaterialsPage({ uploadedMaterials = [], onReviewerCreated }) {
@@ -43,13 +43,16 @@ export default function MaterialsPage({ uploadedMaterials = [], onReviewerCreate
   return (
     <main className="mx-auto max-w-6xl px-5 py-10 lg:px-8 lg:py-14">
       <div className="mb-10 max-w-2xl">
-        <p className="mb-3 text-small font-bold uppercase tracking-[0.18em] text-primary">Your study space</p>
-        <h1 className="text-heading tracking-tight text-text">Make learning stick.</h1>
-        <p className="mt-4 text-body text-slate-500">Turn your notes into focused practice. Choose a material to keep going or start something new.</p>
+        <p className="mb-3 text-small font-bold uppercase tracking-[0.18em] text-primary">StudyLens workspace</p>
+        <h1 className="text-heading tracking-tight text-text">Know what your notes actually say.</h1>
+        <p className="mt-4 text-body text-slate-500">{isMockApiEnabled
+          ? 'Create a quick local outline, or connect the AI service for a careful, page-by-page breakdown of key ideas and exact details.'
+          : 'Get a careful, page-by-page breakdown of key ideas, exact details, and questions grounded in your PDF.'}</p>
       </div>
 
       <section className="mb-12 rounded-2xl bg-primary p-6 text-white shadow-soft sm:p-8" aria-labelledby="create-heading">
-        <h2 id="create-heading" className="mb-4 text-2xl font-bold">Upload study notes</h2>
+        <h2 id="create-heading" className="mb-2 text-2xl font-bold">Analyze a study PDF</h2>
+        <p className="mb-5 text-small text-white/80">Analysis covers up to 30 pages and 15,000 extracted characters. AI mode includes page citations and source excerpts; local demo mode creates a text-based outline.</p>
         <UploadForm onReviewerCreated={onReviewerCreated} />
       </section>
 

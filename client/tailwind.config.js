@@ -7,9 +7,9 @@ export default {
     },
     extend: {
       colors: {
-        primary: '#2563EB',
-        accent: '#15803D',
-        bg: '#F8FAFC',
+        primary: '#0F766E',
+        accent: '#B45309',
+        bg: '#F4F7F6',
         surface: '#FFFFFF',
         text: '#1E293B',
       },

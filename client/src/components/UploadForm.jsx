@@ -60,15 +60,22 @@ export default function UploadForm({ onReviewerCreated }) {
     setError('')
     try {
       const reviewer = await generateReviewer(pending.content, pending.material.title)
-      if (!Array.isArray(reviewer.summary) || !Array.isArray(reviewer.questions)) {
-        throw new Error('We could not generate your reviewer. Please retry.')
+      if (
+        !Array.isArray(reviewer.summary) ||
+        !Array.isArray(reviewer.findings) ||
+        !Array.isArray(reviewer.keyTerms) ||
+        !Array.isArray(reviewer.questions)
+      ) {
+        throw new Error('We could not generate your study guide. Please retry.')
       }
       onReviewerCreated({
         ...pending.material,
         summary: reviewer.summary,
+        findings: reviewer.findings,
+        keyTerms: reviewer.keyTerms,
         reviewerTitle: reviewer.title,
       }, reviewer.questions)
-      setSuccess('Your reviewer is ready.')
+      setSuccess('Your source-grounded study guide is ready.')
       setFile(null)
       setExtracted(null)
       setCanRetry(false)
@@ -77,7 +84,7 @@ export default function UploadForm({ onReviewerCreated }) {
       const isUnreadable = requestError.message === "This PDF doesn't have enough readable content."
       const message = requestError.isReviewerError
         ? requestError.message
-        : 'We could not generate your reviewer. Please retry.'
+        : 'We could not generate your study guide. Please retry.'
       setError(isUnreadable ? requestError.message : message)
       setCanRetry(!isUnreadable)
     } finally {
@@ -139,7 +146,7 @@ export default function UploadForm({ onReviewerCreated }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-tight text-text">
-      <label htmlFor="pdf-upload" className="block text-body font-bold">Study notes PDF</label>
+      <label htmlFor="pdf-upload" className="block text-body font-bold">Choose a text-based PDF (up to 10 MB)</label>
       <input
         ref={inputRef}
         id="pdf-upload"
@@ -155,9 +162,9 @@ export default function UploadForm({ onReviewerCreated }) {
       {success && <p className="text-small font-bold text-surface" role="status">{success}</p>}
       <div className="flex flex-wrap items-center gap-tight">
         {scanning && <Spinner label={scanProgress ? `Scanning page ${scanProgress.pageNumber} of ${scanProgress.totalPages}...` : 'Scanning your document...'} />}
-        {generating && <Spinner label="Generating your reviewer..." />}
-        {!scanning && !generating && !extracted && <Button type="submit" disabled={!file || Boolean(error)}>Scan PDF</Button>}
-        {!scanning && !generating && extracted && canRetry && <Button type="button" onClick={() => generateFromExtracted(extracted)}>Retry reviewer</Button>}
+        {generating && <Spinner label="Analyzing the PDF and checking source details..." />}
+        {!scanning && !generating && !extracted && <Button type="submit" disabled={!file || Boolean(error)}>Analyze PDF</Button>}
+        {!scanning && !generating && extracted && canRetry && <Button type="button" onClick={() => generateFromExtracted(extracted)}>Retry analysis</Button>}
         {file && !scanning && !generating && <Button type="button" variant="secondary" onClick={clearSelection}>Choose another PDF</Button>}
       </div>
     </form>

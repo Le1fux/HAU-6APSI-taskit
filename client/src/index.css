@@ -6,7 +6,7 @@
   :root {
     font-family: 'DM Sans', 'Segoe UI', sans-serif;
     color: #172033;
-    background: #f7f8fc;
+    background: #f4f7f6;
     font-synthesis: none;
     text-rendering: optimizeLegibility;
   }
@@ -18,7 +18,7 @@
   body {
     min-width: 320px;
     margin: 0;
-    background: #f7f8fc;
+    background: #f4f7f6;
   }
 
   button,
@@ -34,6 +34,6 @@
 
   ::selection {
     color: #ffffff;
-    background: #1d4ed8;
+    background: #0f766e;
   }
 }

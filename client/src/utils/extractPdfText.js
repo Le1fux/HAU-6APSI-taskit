@@ -108,7 +108,11 @@ export default async function extractPdfText(file, onProgress) {
       .replace(/-\n(?=[a-z])/gi, '')
       .replace(/[ \t]+\n/g, '\n')
       .trim())
-    const text = cleanedPages.filter(Boolean).join('\n').trim()
+    const text = cleanedPages
+      .map((pageText, index) => pageText ? `[[PAGE ${index + 1}]]\n${pageText}` : '')
+      .filter(Boolean)
+      .join('\n\n')
+      .trim()
     if (text.length < 100) throw new Error('This PDF looks scanned or has no readable text.')
     return text
   } finally {
