@@ -170,7 +170,7 @@ export default function MaterialsPage({ uploadedMaterials = [], onReviewerCreate
               <p className="mt-3 line-clamp-3 text-small leading-6 text-text/70">{preview}</p>
               <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-small font-bold">
                 <Link to={`/materials/${material.id}`} className="text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">{material.isBuiltIn ? 'Explore sample' : 'Open reviewer'} <span aria-hidden="true">→</span></Link>
-                {(Array.isArray(material.summary) && material.summary.length > 0) && <Link to={`/materials/${material.id}#summary`} className="text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">Open full summary <span aria-hidden="true">→</span></Link>}
+                {(Array.isArray(material.summary) && material.summary.length > 0) && <Link to={`/materials/${material.id}/summary`} className="text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">Open full summary <span aria-hidden="true">→</span></Link>}
               </div>
             </article>
           })}

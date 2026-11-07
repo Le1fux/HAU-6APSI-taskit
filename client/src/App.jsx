@@ -60,6 +60,9 @@ export default function App() {
       <Routes>
         <Route path="/" element={<MaterialsPage uploadedMaterials={materials} onReviewerCreated={saveReviewer} />} />
         <Route path="/materials/:id" element={<MaterialDetailPage uploadedMaterials={materials} questions={questions} answersByMaterial={answersByMaterial} onStartQuiz={startQuiz} />} />
+        <Route path="/materials/:id/summary" element={<MaterialDetailPage section="summary" uploadedMaterials={materials} questions={questions} answersByMaterial={answersByMaterial} onStartQuiz={startQuiz} />} />
+        <Route path="/materials/:id/findings" element={<MaterialDetailPage section="findings" uploadedMaterials={materials} questions={questions} answersByMaterial={answersByMaterial} onStartQuiz={startQuiz} />} />
+        <Route path="/materials/:id/concepts" element={<MaterialDetailPage section="concepts" uploadedMaterials={materials} questions={questions} answersByMaterial={answersByMaterial} onStartQuiz={startQuiz} />} />
         <Route path="/materials/:id/quiz" element={<QuizPage questions={questions} answersByMaterial={answersByMaterial} onAnswer={recordAnswer} onRetry={retryQuiz} />} />
         <Route path="/materials/:id/results" element={<ResultsPage questions={questions} answersByMaterial={answersByMaterial} />} />
       </Routes>
