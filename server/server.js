@@ -125,7 +125,7 @@ SPECIFIC ANALYSIS RULES
 - If an item cannot be tied to a page and supporting excerpt, omit it.
 
 QUESTION RULES
-- Return 5 to 10 distinct, answerable questions when the material supports
+- Return 5 to 30 distinct, answerable questions when the material supports
   them. Include precise short-answer recall, definitions, and why/how questions.
 - Test specific details and relationships in this document, not generic study
   prompts. No yes/no questions or details absent from the source.

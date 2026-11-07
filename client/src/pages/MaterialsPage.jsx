@@ -47,7 +47,7 @@ export default function MaterialsPage({ uploadedMaterials = [], onReviewerCreate
         material.title,
         material.course,
         material.content,
-        ...(Array.isArray(material.summary) ? material.summary : []),
+        ...(Array.isArray(material.summary) ? material.summary.map((point) => typeof point === 'string' ? point : point.text) : []),
         ...(Array.isArray(material.findings) ? material.findings.map((finding) => finding.text) : []),
         ...(Array.isArray(material.keyTerms) ? material.keyTerms.flatMap((term) => [term.term, term.definition]) : []),
       ].filter(Boolean).join(' ').toLowerCase()
@@ -79,7 +79,7 @@ export default function MaterialsPage({ uploadedMaterials = [], onReviewerCreate
         <p className="mb-3 text-small font-bold uppercase tracking-[0.18em] text-primary">StudyLens PDF reviewer</p>
         <h1 className="text-heading tracking-tight text-text">Turn your PDFs into focused study guides.</h1>
         <p className="mt-4 text-body text-slate-500">{isMockApiEnabled
-          ? 'Create a reviewer from your material, or explore the built-in Business Board Exam sample.'
+          ? 'Create a reviewer from your material, or explore built-in CPALE, Accounting, Economics, and business fundamentals samples.'
           : 'Analyze your PDF for specific findings, key terms, and practice questions with page citations and source excerpts.'}</p>
       </div>
 
@@ -156,23 +156,23 @@ export default function MaterialsPage({ uploadedMaterials = [], onReviewerCreate
         </div>}
         {visibleMaterials.length > 0 && <div className="grid gap-4 md:grid-cols-2">
           {visibleMaterials.map((material) => {
-            const preview = material.summary?.[0] || material.findings?.[0]?.text || material.content || 'No preview available.'
-            const materialCard = (
-              <>
+            const firstSummary = material.summary?.[0]
+            const preview = (typeof firstSummary === 'string' ? firstSummary : firstSummary?.text) || material.findings?.[0]?.text || material.content || 'No preview available.'
+            return <article key={material.id} className="rounded-xl border border-text/15 bg-surface p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-primary hover:shadow-md">
               <div className="mb-6 flex items-start justify-between gap-4">
                 <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary">{material.isBuiltIn ? 'Built-in sample' : hasAnalysis(material) ? 'PDF reviewer' : 'Reference notes'}</span>
                 {material.isBuiltIn
                   ? <span className="text-right text-xs text-text/60">Included with StudyLens</span>
                   : <time dateTime={material.uploadedAt || material.uploaded_at} className="text-right text-xs text-text/60">{formatDate(material)}</time>}
               </div>
-              <h3 className="text-xl font-bold leading-snug text-text">{material.title}</h3>
+              <h3 className="text-xl font-bold leading-snug text-text"><Link to={`/materials/${material.id}`} className="rounded-sm hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">{material.title}</Link></h3>
               {material.course && <p className="mt-2 text-xs font-semibold text-primary">{material.course}</p>}
               <p className="mt-3 line-clamp-3 text-small leading-6 text-text/70">{preview}</p>
-              <span className="mt-5 inline-block text-small font-bold text-primary transition group-hover:translate-x-1">{material.isBuiltIn ? 'Explore sample' : 'Open reviewer'} <span aria-hidden="true">→</span></span>
-              </>
-            )
-
-            return <Link key={material.id} to={`/materials/${material.id}`} aria-label={`Open ${material.title}${material.course ? `, ${material.course}` : ''}`} className="group rounded-xl border border-text/15 bg-surface p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-primary hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2">{materialCard}</Link>
+              <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-small font-bold">
+                <Link to={`/materials/${material.id}`} className="text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">{material.isBuiltIn ? 'Explore sample' : 'Open reviewer'} <span aria-hidden="true">→</span></Link>
+                {(Array.isArray(material.summary) && material.summary.length > 0) && <Link to={`/materials/${material.id}#summary`} className="text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">Open full summary <span aria-hidden="true">→</span></Link>}
+              </div>
+            </article>
           })}
         </div>}
       </section>
