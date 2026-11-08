@@ -1,5 +1,5 @@
 # StudyLens
-StudyLens is a general PDF reviewer that creates focused, source-grounded study guides with specific findings, key terms, page citations, supporting excerpts, and practice questions. Its built-in library includes an introductory Philippine CPA Licensure Examination (CPALE) reviewer with topic outlines and practice across all six subjects, plus Accounting, Economics, and business fundamentals samples. Course or subject context is optional and helps focus PDF analysis; automatic web search is not available, and AI analysis uses the uploaded PDF as its only source.
+StudyLens is a general PDF reviewer that creates focused, source-grounded study guides with specific findings, key terms, page citations, supporting excerpts, and up to 30 practice questions when the uploaded material supports them. Library cards provide a direct link to each full summary. Its built-in library includes an introductory Philippine CPA Licensure Examination (CPALE) reviewer with topic outlines and practice across all six subjects, plus Accounting, Economics, and business fundamentals samples. Course or subject context is optional and helps focus PDF analysis; automatic web search is not available, and AI analysis uses the uploaded PDF as its only source.
 
 ## Intended user and problem
 

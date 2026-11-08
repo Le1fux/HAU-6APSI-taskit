@@ -158,7 +158,7 @@ function makeLabeledFactQuestions(facts) {
     if (question && fact.explanation.length >= 2) {
       questions.push({ question, answer: fact.explanation })
     }
-    if (questions.length >= 10) break
+    if (questions.length >= 30) break
   }
 
   return questions
@@ -283,7 +283,7 @@ function makeSentenceQuestions(sentences) {
     if (seen.has(key)) continue
     seen.add(key)
     questions.push({ question, answer: answer.replace(/[.!?]+$/, ''), sourceText: sentence })
-    if (questions.length === 10) break
+    if (questions.length === 30) break
   }
 
   return questions
@@ -461,7 +461,7 @@ export function buildReviewer(text, fileName) {
     ...term,
     ...sourceFor(sourceText, sourceLines),
   }))
-  questions = questions.slice(0, 10).map(({ sourceText, ...question }) => ({
+  questions = questions.slice(0, 30).map(({ sourceText, ...question }) => ({
     ...question,
     ...sourceFor(sourceText || question.answer, sourceLines),
   }))

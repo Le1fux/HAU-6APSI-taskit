@@ -33,14 +33,6 @@ const businessFundamentalsReviewer = {
       sourceIds: [accountingSource.id],
     },
     {
-      text: 'External users such as owners, lenders, and government entities rely on financial accounting reports. Managers use internal accounting information to set and evaluate goals, plan budgets, make pricing decisions, and understand production costs.',
-      sourceIds: [accountingSource.id],
-    },
-    {
-      text: 'Useful business analysis can connect financial outcomes to operational details. For example, examining production scrap may help managers investigate product quality and shipping delays as well as costs.',
-      sourceIds: [accountingSource.id],
-    },
-    {
       text: 'In economics, demand describes how much buyers are willing and able to purchase at different prices; quantity demanded means the amount buyers would purchase at one specific price.',
       sourceIds: [economicsSource.id],
     },
@@ -50,14 +42,6 @@ const businessFundamentalsReviewer = {
     },
     {
       text: 'Market equilibrium occurs at the price where quantity demanded equals quantity supplied. At a price above equilibrium, the cited text illustrates excess supply (a surplus).',
-      sourceIds: [economicsSource.id],
-    },
-    {
-      text: 'A demand schedule and a demand curve show the same price-and-quantity relationship in a table and a graph. A supply schedule and a supply curve represent the corresponding relationship for producers.',
-      sourceIds: [economicsSource.id],
-    },
-    {
-      text: 'At a price below equilibrium, quantity demanded exceeds quantity supplied, creating excess demand (a shortage). At a price above equilibrium, quantity supplied exceeds quantity demanded, creating excess supply (a surplus).',
       sourceIds: [economicsSource.id],
     },
   ],
@@ -97,21 +81,6 @@ const businessFundamentalsReviewer = {
       explanation: 'At the example price of $1.80, the schedule shows quantity demanded of 500 million gallons and quantity supplied of 680 million gallons. Since supply exceeds demand, the text calls this a surplus.',
       sourceIds: [economicsSource.id],
     },
-    {
-      text: 'A price below equilibrium creates excess demand in the textbook’s model.',
-      explanation: 'At $1.20 per gallon, the example schedule shows 700 million gallons demanded and 550 million gallons supplied. The 150-million-gallon difference is a shortage in that example; these values are not current market data.',
-      sourceIds: [economicsSource.id],
-    },
-    {
-      text: 'Tables and graphs can communicate the same market relationship.',
-      explanation: 'A schedule lists quantities at different prices, while the corresponding curve plots price and quantity on axes. When reading a graph, distinguish a single quantity at one price from the full relationship represented by the curve.',
-      sourceIds: [economicsSource.id],
-    },
-    {
-      text: 'Operational and nonfinancial information can help explain financial results.',
-      explanation: 'The accounting chapter’s manufacturing example connects scrap costs with product quality and shipping delays. Managers can use such information to investigate where an operating process may need improvement.',
-      sourceIds: [accountingSource.id],
-    },
   ],
   keyTerms: [
     {
@@ -131,36 +100,6 @@ const businessFundamentalsReviewer = {
       definition: 'Accounting information used within an organization to support decisions and business goals.',
       explanation: 'Examples in the cited chapter include budgeting, pricing, and determining production costs. It may use financial and nonfinancial information.',
       sourceIds: [accountingSource.id],
-    },
-    {
-      term: 'External stakeholder',
-      definition: 'A person or organization outside a business that uses its financial information.',
-      explanation: 'The cited chapter gives owners, stockholders, lenders, and government entities as examples.',
-      sourceIds: [accountingSource.id],
-    },
-    {
-      term: 'Nonfinancial information',
-      definition: 'Decision-relevant information that is not expressed only as a financial amount.',
-      explanation: 'Examples in the cited chapter include reliability, operating conditions, product quality, and shipping delays.',
-      sourceIds: [accountingSource.id],
-    },
-    {
-      term: 'Demand schedule',
-      definition: 'A table showing quantities demanded at different prices.',
-      explanation: 'It presents the same price-and-quantity relationship that can be shown by a demand curve.',
-      sourceIds: [economicsSource.id],
-    },
-    {
-      term: 'Supply schedule',
-      definition: 'A table showing quantities supplied at different prices.',
-      explanation: 'It presents the same price-and-quantity relationship that can be shown by a supply curve.',
-      sourceIds: [economicsSource.id],
-    },
-    {
-      term: 'Shortage (excess demand)',
-      definition: 'A condition where quantity demanded exceeds quantity supplied at a given price.',
-      explanation: 'The cited gasoline schedule illustrates excess demand at a price below its equilibrium price.',
-      sourceIds: [economicsSource.id],
     },
     {
       term: 'Demand',
@@ -229,16 +168,6 @@ const businessFundamentalsReviewer = {
       sourceIds: [accountingSource.id],
     },
     {
-      question: 'Who may use financial accounting information, and who typically uses managerial accounting information?',
-      answer: 'Financial accounting information is prepared for external stakeholders such as owners, lenders, and government entities. Managerial accounting information is generally used internally by decision-makers and managers.',
-      sourceIds: [accountingSource.id],
-    },
-    {
-      question: 'How could a manager use information about production scrap?',
-      answer: 'The manager could investigate the cost of scrap and whether it is connected to product quality problems or shipping delays, then use those findings to evaluate possible process improvements.',
-      sourceIds: [accountingSource.id],
-    },
-    {
       question: 'Distinguish demand from quantity demanded.',
       answer: 'Demand is the relationship between prices and the amounts consumers are willing and able to buy. Quantity demanded is the amount associated with one particular price.',
       sourceIds: [economicsSource.id],
@@ -271,16 +200,6 @@ const businessFundamentalsReviewer = {
     {
       question: 'In the cited gasoline example, what happens at $1.80 per gallon?',
       answer: 'Quantity demanded is 500 million gallons and quantity supplied is 680 million gallons, so quantity supplied exceeds quantity demanded and the example has a surplus.',
-      sourceIds: [economicsSource.id],
-    },
-    {
-      question: 'In the cited gasoline schedule, what happens at $1.20 per gallon?',
-      answer: 'Quantity demanded is 700 million gallons and quantity supplied is 550 million gallons. Demand exceeds supply by 150 million gallons, so the example has a shortage.',
-      sourceIds: [economicsSource.id],
-    },
-    {
-      question: 'What is the difference between a demand schedule and a demand curve?',
-      answer: 'A demand schedule presents quantities demanded at different prices in a table; a demand curve plots the same relationship on a graph.',
       sourceIds: [economicsSource.id],
     },
   ],
