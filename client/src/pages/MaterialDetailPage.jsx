@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, NavLink, Navigate, useParams } from 'react-router-dom'
+import SourceLinks from '../components/SourceLinks.jsx'
 import { getFallbackQuestions } from '../utils/fallbackQuestions.js'
 import { getBuiltInQuestions } from '../data/builtInMaterials.js'
 import { getById } from '../api/materials.js'
@@ -43,14 +44,15 @@ function highlightVocabulary(text, terms) {
   return parts
 }
 
-// Shows uploaded summaries and the questions associated with a material.
+// Shows one study-guide section for a material.
 export default function MaterialDetailPage({
   uploadedMaterials = [],
   questions = [],
   answersByMaterial = {},
   onStartQuiz,
 }) {
-  const { id } = useParams()
+  const { id, section: requestedSection } = useParams()
+  const section = requestedSection || 'questions'
   const [material, setMaterial] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -96,11 +98,22 @@ export default function MaterialDetailPage({
   const summaryPoints = Array.isArray(material?.summary) ? material.summary : []
   const findings = Array.isArray(material?.findings) ? material.findings : []
   const keyTerms = Array.isArray(material?.keyTerms) ? material.keyTerms : []
-  const vocabularyTerms = getVocabularyTerms(summaryPoints)
+  const summaryText = (point) => typeof point === 'string' ? point : point.text
+  const vocabularyTerms = getVocabularyTerms(summaryPoints.map(summaryText))
   const citation = (page) => page ? `Page ${page}` : 'Source page unavailable'
   const sourceExcerpt = (evidence) => evidence
     ? <blockquote className="mt-3 border-l-2 border-primary/30 pl-3 text-small italic text-slate-500">“{evidence}”</blockquote>
     : null
+  const sections = [
+    { id: 'summary', label: 'Summary' },
+    { id: 'findings', label: 'Specific findings' },
+    { id: 'concepts', label: 'Key concepts' },
+    { id: 'questions', label: 'Questions and answers' },
+  ]
+
+  if (!sections.some((item) => item.id === section)) {
+    return <Navigate to={`/materials/${id}`} replace />
+  }
 
   return (
     <main className="mx-auto max-w-4xl px-5 py-10 lg:px-8 lg:py-14">
@@ -109,32 +122,60 @@ export default function MaterialDetailPage({
       {!loading && error && <p className="mt-8 text-red-600" role="alert">{error}</p>}
       {!loading && !error && !material && <p className="mt-8 text-slate-500">Reviewer not found.</p>}
       {!loading && !error && material && <>
-      <div className="mt-8 flex flex-col justify-between gap-5 border-b border-slate-200 pb-8 sm:flex-row sm:items-end">
-        <div><p className="mb-2 text-small font-bold uppercase tracking-[0.16em] text-primary">{material.isBuiltIn ? 'Built-in sample reviewer' : 'PDF study guide'}</p><h1 className="text-heading tracking-tight text-text">{material.title}</h1>{material.course && <p className="mt-2 inline-flex rounded-full bg-primary/10 px-3 py-1 text-small font-bold text-primary">{material.course}</p>}<p className="mt-3 text-slate-500">{material.isBuiltIn ? 'An illustrative sample for study practice. It is not an official exam blueprint or a substitute for your course materials.' : 'Specific takeaways grounded in your document, with page references to check the source.'}</p></div>
-        <Link to={`/materials/${id}/quiz`} onClick={() => onStartQuiz(id, attemptComplete)} className="rounded-xl bg-primary px-5 py-3 text-center font-bold text-white transition hover:bg-primary/90">
-          {attemptInProgress ? 'Continue practice quiz' : attemptComplete ? 'Start another attempt' : 'Start practice quiz'}
-        </Link>
+      <div className="mt-8 border-b border-slate-200 pb-6">
+        <p className="mb-2 text-small font-bold uppercase tracking-[0.16em] text-primary">{material.isBuiltIn ? 'Built-in sample reviewer' : 'PDF study guide'}</p>
+        <h1 className="text-heading tracking-tight text-text">{material.title}</h1>
+        {material.course && <p className="mt-2 inline-flex rounded-full bg-primary/10 px-3 py-1 text-small font-bold text-primary">{material.course}</p>}
       </div>
-      <section className="mt-8 rounded-2xl border border-slate-200 bg-surface p-6 shadow-soft sm:p-8"><h2 className="text-xl font-bold text-text">Summary</h2>{summaryPoints.length ? <ul className="mt-4 list-disc space-y-3 pl-5 text-slate-600">{summaryPoints.map((point, index) => <li key={`${index}-${point}`}>{highlightVocabulary(point, vocabularyTerms)}</li>)}</ul> : <p className="mt-4 whitespace-pre-wrap leading-8 text-slate-600">{material.content || 'No notes added yet.'}</p>}</section>
-      {findings.length > 0 && <section className="mt-8" aria-labelledby="findings-heading">
+      <nav aria-label="Reviewer section links" className="sticky top-0 z-10 -mx-5 flex gap-2 overflow-x-auto border-b border-slate-200 bg-bg px-5 py-3 lg:-mx-8 lg:px-8">
+        {sections.map((item) => (
+          <NavLink
+            key={item.id}
+            to={item.id === 'questions' ? `/materials/${id}` : `/materials/${id}/${item.id}`}
+            end
+            className={({ isActive }) => `shrink-0 rounded-full px-4 py-2 text-small font-semibold transition-colors ${isActive ? 'bg-primary text-white' : 'border border-primary/30 text-primary hover:bg-primary/5'}`}
+          >
+            {item.label}
+          </NavLink>
+        ))}
+      </nav>
+      {section === 'summary' && <section className="mt-8 rounded-2xl border border-slate-200 bg-surface p-6 shadow-soft sm:p-8"><h2 className="text-xl font-bold text-text">Summary</h2>{summaryPoints.length ? <ul className="mt-4 list-disc space-y-4 pl-5 text-slate-600">{summaryPoints.map((point, index) => {
+        const text = summaryText(point)
+        return <li key={`${index}-${text}`}>{highlightVocabulary(text, vocabularyTerms)}{typeof point === 'object' && <SourceLinks sourceIds={point.sourceIds} sources={material.sources} />}</li>
+      })}</ul> : <p className="mt-4 whitespace-pre-wrap leading-8 text-slate-600">{material.content || 'No notes added yet.'}</p>}</section>
+      }
+      {section === 'findings' && (findings.length > 0 ? <section className="mt-8" aria-labelledby="findings-heading">
         <div className="mb-4"><h2 id="findings-heading" className="text-xl font-bold text-text">Specific findings</h2><p className="mt-1 text-small text-slate-500">{material.isBuiltIn ? 'Core ideas covered by this sample reviewer.' : 'Each point includes its source location and supporting excerpt.'}</p></div>
         <div className="space-y-3">{findings.map((finding, index) => <article key={`${index}-${finding.text}`} className="rounded-xl border border-slate-200 bg-surface p-5">
           <div className="flex items-start justify-between gap-3"><p className="font-semibold leading-7 text-text">{finding.text}</p>{!material.isBuiltIn && <span className="shrink-0 rounded-full bg-bg px-3 py-1 text-xs font-bold text-primary">{citation(finding.page)}</span>}</div>
+          {finding.explanation && <p className="mt-2 text-small leading-6 text-slate-600">{finding.explanation}</p>}
           {sourceExcerpt(finding.evidence)}
+          <SourceLinks sourceIds={finding.sourceIds} sources={material.sources} />
         </article>)}</div>
-      </section>}
-      {keyTerms.length > 0 && <section className="mt-8" aria-labelledby="terms-heading">
+      </section> : <p className="mt-8 text-slate-500">No specific findings are available for this material.</p>)}
+      {section === 'concepts' && (keyTerms.length > 0 ? <section className="mt-8" aria-labelledby="terms-heading">
         <h2 id="terms-heading" className="mb-4 text-xl font-bold text-text">{material.isBuiltIn ? 'Key concepts' : 'Key terms from the PDF'}</h2>
         <div className="grid gap-3 sm:grid-cols-2">{keyTerms.map((term, index) => <article key={`${index}-${term.term}`} className="rounded-xl border border-slate-200 bg-surface p-5">
           <div className="flex items-start justify-between gap-3"><h3 className="font-bold text-text">{term.term}</h3>{!material.isBuiltIn && <span className="shrink-0 rounded-full bg-bg px-3 py-1 text-xs font-bold text-primary">{citation(term.page)}</span>}</div>
           <p className="mt-2 text-small leading-6 text-slate-600">{term.definition}</p>
+          {term.explanation && <p className="mt-2 text-small leading-6 text-slate-600">{term.explanation}</p>}
           {sourceExcerpt(term.evidence)}
+          <SourceLinks sourceIds={term.sourceIds} sources={material.sources} />
         </article>)}</div>
-      </section>}
-      <section className="mt-8" aria-labelledby="practice-heading"><div className="mb-4 flex items-center justify-between"><h2 id="practice-heading" className="text-xl font-bold text-text">Practice questions</h2><span className="text-small text-slate-400">{materialQuestions.length || fallbackQuestions.length} questions</span></div><div className="space-y-3">{materialQuestions.length ? materialQuestions.map((question, index) => <article key={question.id || `${index}-${question.question}`} className="rounded-xl border border-slate-200 bg-surface p-4">
+      </section> : <p className="mt-8 text-slate-500">No key concepts are available for this material.</p>)}
+      {section === 'questions' && <section className="mt-8" aria-labelledby="practice-heading">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <div><h2 id="practice-heading" className="text-xl font-bold text-text">Questions and possible answers</h2><span className="text-small text-slate-400">{materialQuestions.length || fallbackQuestions.length} questions</span></div>
+          <Link to={`/materials/${id}/quiz`} onClick={() => onStartQuiz(id, attemptComplete)} className="rounded-xl bg-primary px-5 py-3 text-center font-bold text-white transition hover:bg-primary/90">
+            {attemptInProgress ? 'Continue practice quiz' : attemptComplete ? 'Start another attempt' : 'Start practice quiz'}
+          </Link>
+        </div>
+        <div className="space-y-3">{materialQuestions.length ? materialQuestions.map((question, index) => <article key={question.id || `${index}-${question.question}`} className="rounded-xl border border-slate-200 bg-surface p-4">
         <div className="flex items-start justify-between gap-3"><p className="font-medium text-text">{question.question}</p>{!material.isBuiltIn && <span className="shrink-0 rounded-full bg-bg px-3 py-1 text-xs font-bold text-primary">{citation(question.page)}</span>}</div>
+        {question.answer && <p className="mt-3 text-small leading-6 text-slate-600"><span className="font-semibold text-text">Possible answer:</span> {question.answer}</p>}
         {!material.isBuiltIn && sourceExcerpt(question.evidence)}
       </article>) : fallbackQuestions.map((question, index) => <div key={`${index}-${question}`} className="flex items-center gap-4 rounded-xl border border-slate-200 bg-surface p-4"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-primary/10 text-small font-bold text-primary">{index + 1}</span><p className="font-medium text-text">{question}</p></div>)}</div></section>
+      }
       </>}
     </main>
   )

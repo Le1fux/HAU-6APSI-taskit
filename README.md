@@ -1,9 +1,9 @@
 # StudyLens
-StudyLens is a general PDF reviewer that creates focused, source-grounded study guides with specific findings, key terms, page citations, supporting excerpts, and practice questions. Its built-in library includes a sample Business Board Exam Reviewer. Course or subject context is optional and helps focus PDF analysis; automatic web search is not available, and AI analysis uses the uploaded PDF as its only source.
+StudyLens is a general PDF reviewer that creates focused, source-grounded study guides with specific findings, key terms, page citations, supporting excerpts, and practice questions. Its built-in library includes an introductory Philippine CPA Licensure Examination (CPALE) reviewer with topic outlines and practice across all six subjects, plus Accounting, Economics, and business fundamentals samples. Course or subject context is optional and helps focus PDF analysis; automatic web search is not available, and AI analysis uses the uploaded PDF as its only source.
 
 ## Intended user and problem
 
-StudyLens is for learners who want to understand material in detail and verify study takeaways against the original PDF. The built-in Business Board Exam Reviewer is an illustrative sample, not an official exam blueprint. AI-powered analysis requires the server API and an Anthropic API key; the default local mode generates a lightweight text-based reviewer.
+StudyLens is for learners who want to understand material in detail and verify study takeaways against the original PDF. The built-in CPALE reviewer is an illustrative study outline with 18 practice questions, not an official or exhaustive syllabus; always check the latest PRC and Board of Accountancy requirements, syllabi, laws, and standards. The Accounting and Economics samples are focused excerpts from the linked OpenStax chapters. AI-powered analysis requires the server API and an Anthropic API key; the default local mode generates a text-based reviewer with a more varied extractive summary.
 
 ## Technology stack
 
@@ -23,42 +23,100 @@ There is no root `package.json`. Install and run client and server dependencies 
 - PostgreSQL 17 or compatible for the local database workflow. PostgreSQL 17 is the version used by `compose.yml`.
 - Alternatively, Docker with the Docker Compose plugin can start the database and API services. Docker is not installed in every development environment.
 
-## Clone and install
+## Step-by-step setup (PowerShell)
 
-Run these commands in PowerShell from the directory where you keep projects:
+Start with the client in mock mode. This is the quickest way to run the app and does not require the API, PostgreSQL, or an API key.
+
+### 1. Clone the project
+
+Open PowerShell in the folder where you keep projects:
 
 ```powershell
-git clone https://github.com/Le1fux/HAU-6APSI-taskit.git
-cd HAU-6APSI-taskit
+git clone https://github.com/Le1fux/HAU-6APSI-taskit.git StudyLens
+Set-Location .\StudyLens
 ```
 
-Install and configure the server from the repository root:
+### 2. Install and start the client
+
+In the same terminal, run:
 
 ```powershell
-cd server
+Set-Location .\client
 npm install
 Copy-Item .env.example .env
+npm run dev
 ```
 
-Edit `server/.env` for your local PostgreSQL username/password and keep its database name as `taskit`. This file is ignored by Git. Do not commit real credentials.
+After Vite starts, open the app in your default browser from a **second PowerShell terminal**:
 
-## Database setup
+```powershell
+Start-Process http://localhost:5173
+```
 
-Start your local PostgreSQL service, then create the `taskit` database. With PostgreSQL command-line tools on PATH:
+The client starts in mock mode and includes the built-in CPALE, Accounting, Economics, and business fundamentals samples. PDF review uses a local text-based heuristic, and uploaded records are not retained after a full page reload.
+
+### 3. (Optional) Install and configure the API
+
+Skip this step if you only need the mock client. For AI-powered PDF analysis or database features, open a **new PowerShell terminal** in the project folder and run:
+
+```powershell
+Set-Location .\server
+npm install
+Copy-Item .env.example .env
+notepad .env
+```
+
+In `server/.env`, set `CORS_ORIGINS=http://localhost:5173`. For AI-powered analysis, add your Anthropic key to `ANTHROPIC_API_KEY`. Keep the key in this ignored server file; never put it in a client `VITE_` variable. If you are not setting up PostgreSQL, clear the example `DATABASE_URL` value. The API can run without a database for reviewer and health routes.
+
+### 4. (Optional) Set up PostgreSQL for database features
+
+Skip this step if you only need PDF review. Start PostgreSQL. In the server terminal, create the `taskit` database:
 
 ```powershell
 createdb taskit
 ```
 
-If `createdb` is unavailable, connect to PostgreSQL with an administrator and run `CREATE DATABASE taskit;` once. If set, `DATABASE_URL` in `server/.env` must point to that database and use credentials that can create the schema and rows; it is optional, and without it only the reviewer and health routes work.
+If `createdb` is unavailable, connect to PostgreSQL with an administrator and run `CREATE DATABASE taskit;` once. Set `DATABASE_URL` in `server/.env` to your database connection string, for example `postgresql://<username>:<password>@localhost:5432/taskit`. Replace the placeholders with your local credentials.
 
-From the terminal already in `server/`, run the server script. It executes the checked-in SQL files through the Node `pg` driver, so `psql` is not required for schema and seed execution:
+Initialize the database from the `server` directory:
 
 ```powershell
 npm run db:reset
 ```
 
-`db:reset` runs `db:schema.sql` and then `db:seed.sql`. The seed script clears `materials` and leaves the development library empty; use it only against a development database because it removes existing material rows.
+This runs the schema and seed scripts. **It clears the `materials` table**, so use it only with a development database that you are willing to reset.
+
+### 5. Start the API
+
+If you completed step 3, start the API in the server terminal:
+
+```powershell
+npm run dev
+```
+
+The API listens at `http://localhost:3000`. To open its health check in your default browser from another PowerShell terminal, run:
+
+```powershell
+Start-Process http://localhost:3000/healthz
+```
+
+The `/readyz` endpoint checks database connectivity and therefore requires PostgreSQL.
+
+### 6. (Optional) Connect the client to the API
+
+Stop the client dev server with `Ctrl+C`. The first terminal is still in the `client` directory; edit its environment file:
+
+```powershell
+notepad .env
+```
+
+Set `VITE_USE_MOCK_API=false` and `VITE_API_BASE_URL=http://localhost:3000`, save the file, then restart Vite:
+
+```powershell
+npm run dev
+```
+
+The browser client now uses the API. AI-powered PDF analysis requires the server and an Anthropic API key; it supports up to 30 PDF pages and 15,000 extracted characters. Enter a course or subject when it helps focus the analysis. Built-in samples are available in both mock and live modes.
 
 ## Environment variables
 
@@ -71,49 +129,13 @@ npm run db:reset
 | `server/.env` - `ANTHROPIC_MODEL` | AI-powered PDF analysis | Optional; defaults to `claude-haiku-4-5-20251001`. |
 | `BASIC_AUTH_USER`, `BASIC_AUTH_PASS` | Optional local access gate; required together, and required in production | Set as protected host environment variables. Do not commit credentials. |
 | `PORT` | API runtime | Optional; defaults to `3000`. Do not set it in the local example unless you need a different port. |
-| `client/.env` - `VITE_USE_MOCK_API` | Client data source, compiled at build time | `true` uses the in-memory reviewer library; set to exact `false` to call the API. The built-in Business Board Exam sample is included in either mode. |
+| `client/.env` - `VITE_USE_MOCK_API` | Client data source, compiled at build time | `true` uses the in-memory reviewer library; set to exact `false` to call the API. All four built-in samples are included in either mode. |
 | `client/.env` - `VITE_API_BASE_URL` | Client live API mode | `http://localhost:3000`; no trailing slash. Ignored in mock mode. |
 | root `.env` - `POSTGRES_PASSWORD` | Optional Docker Compose setup | Local-only PostgreSQL password; replace the example before starting Compose. |
 | root `.env` - `CORS_ORIGINS` | Optional Docker Compose setup | `http://localhost:5173`. |
 | root `.env` - `BASIC_AUTH_USER`, `BASIC_AUTH_PASS` | Docker Compose access gate | Replace both local placeholders before starting Compose. |
 
 Copy each relevant `.env.example` to `.env` in the same directory. The client variables are public build-time values; never put passwords, keys, or connection strings in any `VITE_` variable. Real credentials belong only in ignored local `.env` files or the hosting provider's protected environment settings.
-
-## Run the full application
-
-Use two PowerShell terminals after completing the database setup.
-
-**Terminal 1: start the API**
-
-Open a new PowerShell terminal in the directory that contains the cloned
-`HAU-6APSI-taskit` folder, then run:
-
-```powershell
-cd HAU-6APSI-taskit\server
-npm run dev
-```
-
-The API listens at `http://localhost:3000` by default. Check process health at `http://localhost:3000/healthz` and database readiness at `http://localhost:3000/readyz`; the ready endpoint requires PostgreSQL to be running.
-
-**Terminal 2: configure and start the client**
-
-Open another PowerShell terminal in that same parent directory:
-
-```powershell
-cd HAU-6APSI-taskit\client
-npm install
-Copy-Item .env.example .env
-```
-
-For detailed AI analysis, add your Anthropic API key to `server/.env`, then edit `client/.env` and set `VITE_USE_MOCK_API=false` and `VITE_API_BASE_URL=http://localhost:3000`. The server analyzes up to 30 PDF pages and 15,000 extracted characters. Enter a course or subject when it helps focus the analysis. Then run:
-
-```powershell
-npm run dev
-```
-
-Open `http://localhost:5173`. In either mode, the library includes the built-in Business Board Exam Reviewer sample. In live mode, uploaded PDF findings, key terms, and practice questions include page references and supporting excerpts. In mock mode, PDF analysis uses a lightweight local text heuristic; locally created records disappear on a full page reload. The mock mode does not use PostgreSQL or AI.
-
-For the client alone, leave `VITE_USE_MOCK_API=true`; no server or database is needed.
 
 ## Optional Docker Compose setup
 
@@ -129,7 +151,7 @@ Compose creates database `taskit`, mounts the schema and seed scripts for first-
 
 ## Implemented features and limitations
 
-**Implemented:** four React Router screens; responsive StudyLens styling; a built-in Business Board Exam Reviewer sample; reviewer list loading; PDF text extraction with page boundaries; local and AI-powered general reviewer modes; source-grounded findings, key terms, and cited questions in AI mode; server-side material and ID validation; optional HTTP Basic access gate; PostgreSQL materials schema; and materials CRUD route implementations.
+**Implemented:** four React Router screens; responsive StudyLens styling; built-in CPALE, Accounting, Economics, and business fundamentals reviewer samples; reviewer list loading; PDF text extraction with page boundaries; local and AI-powered general reviewer modes; source-grounded findings, key terms, and cited questions in AI mode; server-side material and ID validation; optional HTTP Basic access gate; PostgreSQL materials schema; and materials CRUD route implementations.
 
 **Partial or mock-only:** the mock material store exists only in JavaScript memory, not localStorage. The Materials form sends empty content because it has no content editor. Material detail displays three generic hardcoded practice questions. Quiz uses hardcoded questions and a generic revealed answer; its index, revealed state, and score stay local to that page. Results displays fixed sample score, missed-question, and attempt-history content, not data from the latest quiz.
 

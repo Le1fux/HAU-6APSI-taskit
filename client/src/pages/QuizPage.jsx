@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom'
+import SourceLinks from '../components/SourceLinks.jsx'
 import { getFallbackQuestions } from '../utils/fallbackQuestions.js'
 import { getBuiltInQuestions } from '../data/builtInMaterials.js'
 
@@ -93,6 +94,7 @@ export default function QuizPage({
             </>
             : 'Reveal the answer and source'}
         </button>
+        {answerRevealed && <SourceLinks sourceIds={currentQuestion.sourceIds} sources={currentQuestion.sources} />}
         <div className="mt-8 border-t border-slate-100 pt-6">
           <p className="text-small text-slate-500">How did you do?</p>
           <div className="mt-3 grid gap-3 sm:grid-cols-2">

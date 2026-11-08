@@ -1,4 +1,5 @@
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
+import SourceLinks from '../components/SourceLinks.jsx'
 import { getFallbackQuestions } from '../utils/fallbackQuestions.js'
 import { getBuiltInQuestions } from '../data/builtInMaterials.js'
 
@@ -64,6 +65,7 @@ export default function ResultsPage({
             <p className="mt-3 text-small leading-6 text-slate-600">{question.answer}</p>
             {question.page && <p className="mt-3 text-xs font-bold text-primary">Source: page {question.page}</p>}
             {question.evidence && <blockquote className="mt-2 border-l-2 border-primary/30 pl-3 text-small italic text-slate-500">“{question.evidence}”</blockquote>}
+            <SourceLinks sourceIds={question.sourceIds} sources={question.sources} />
           </article>)}</div>
           : <p className="rounded-xl border border-emerald-200 bg-emerald-50 p-5 text-small font-medium text-emerald-950">No missed questions this round. Keep reviewing periodically to reinforce what you learned.</p>}
 

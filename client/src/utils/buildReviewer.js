@@ -83,7 +83,7 @@ function findExplicitTerms(text) {
 function getSentences(text) {
   return uniqueByLetters(text.split(/(?<=[.!?])\s+/)
     .map((sentence) => sentence.trim())
-    .filter((sentence) => sentence.length >= 40 && sentence.length <= 350))
+    .filter((sentence) => sentence.length >= 25 && sentence.length <= 350))
 }
 
 function extractProseTerms(sentences) {
@@ -292,20 +292,32 @@ function makeSentenceQuestions(sentences) {
 function makeSentenceSummary(text) {
   const sentences = getSentences(text)
   const frequency = new Map()
+  const sentenceFrequency = new Map()
   for (const word of wordsIn(text)) {
     if (word.length >= 4 && !STOP_WORDS.has(word)) {
       frequency.set(word, (frequency.get(word) || 0) + 1)
     }
   }
 
+  for (const sentence of sentences) {
+    const terms = new Set(wordsIn(sentence).filter((word) => word.length >= 4 && !STOP_WORDS.has(word)))
+    for (const term of terms) {
+      sentenceFrequency.set(term, (sentenceFrequency.get(term) || 0) + 1)
+    }
+  }
+
   const rankedSentences = sentences.map((sentence, index) => {
     const terms = new Set(wordsIn(sentence).filter((word) => word.length >= 4 && !STOP_WORDS.has(word)))
+    const centrality = [...terms].reduce((total, word) => {
+      const prevalence = sentenceFrequency.get(word) || 1
+      return total + Math.log1p(frequency.get(word) || 0) * Math.log1p(sentences.length / prevalence)
+    }, 0)
     return {
       sentence,
       index,
       terms,
       score: terms.size
-        ? [...terms].reduce((total, word) => total + Math.log1p(frequency.get(word) || 0), 0) / Math.sqrt(terms.size)
+        ? centrality / Math.sqrt(terms.size) * (index === 0 ? 1.15 : 1)
         : 0,
     }
   }).sort((left, right) => right.score - left.score || left.index - right.index)
@@ -313,16 +325,20 @@ function makeSentenceSummary(text) {
   const selected = []
   const coveredTerms = new Set()
   for (const candidate of rankedSentences) {
-    if (candidate.terms.size < 3) continue
-    const overlap = [...candidate.terms].filter((word) => coveredTerms.has(word)).length / candidate.terms.size
-    if (overlap > 0.65) continue
+    const novelty = [...candidate.terms].filter((word) => !coveredTerms.has(word)).length
+    if (candidate.terms.size < 2 && sentences.length > 1) continue
+    if (selected.length && novelty === 0) continue
+    const overlap = candidate.terms.size ? 1 - novelty / candidate.terms.size : 1
+    if (overlap > 0.75) continue
     selected.push(candidate)
     for (const word of candidate.terms) coveredTerms.add(word)
     if (selected.length === 6) break
   }
 
+  if (!selected.length && sentences.length) selected.push(rankedSentences[0])
+
   return selected.sort((left, right) => left.index - right.index)
-    .map(({ sentence }) => trimText(sentence, 200))
+    .map(({ sentence }) => sentence)
 }
 
 function getSourceLines(text) {

@@ -47,7 +47,7 @@ export default function MaterialsPage({ uploadedMaterials = [], onReviewerCreate
         material.title,
         material.course,
         material.content,
-        ...(Array.isArray(material.summary) ? material.summary : []),
+        ...(Array.isArray(material.summary) ? material.summary.map((point) => typeof point === 'string' ? point : point.text) : []),
         ...(Array.isArray(material.findings) ? material.findings.map((finding) => finding.text) : []),
         ...(Array.isArray(material.keyTerms) ? material.keyTerms.flatMap((term) => [term.term, term.definition]) : []),
       ].filter(Boolean).join(' ').toLowerCase()
@@ -79,7 +79,7 @@ export default function MaterialsPage({ uploadedMaterials = [], onReviewerCreate
         <p className="mb-3 text-small font-bold uppercase tracking-[0.18em] text-primary">StudyLens PDF reviewer</p>
         <h1 className="text-heading tracking-tight text-text">Turn your PDFs into focused study guides.</h1>
         <p className="mt-4 text-body text-slate-500">{isMockApiEnabled
-          ? 'Create a reviewer from your material, or explore the built-in Business Board Exam sample.'
+          ? 'Create a reviewer from your material, or explore built-in CPALE, Accounting, Economics, and business fundamentals samples.'
           : 'Analyze your PDF for specific findings, key terms, and practice questions with page citations and source excerpts.'}</p>
       </div>
 
@@ -156,7 +156,8 @@ export default function MaterialsPage({ uploadedMaterials = [], onReviewerCreate
         </div>}
         {visibleMaterials.length > 0 && <div className="grid gap-4 md:grid-cols-2">
           {visibleMaterials.map((material) => {
-            const preview = material.summary?.[0] || material.findings?.[0]?.text || material.content || 'No preview available.'
+            const firstSummary = material.summary?.[0]
+            const preview = (typeof firstSummary === 'string' ? firstSummary : firstSummary?.text) || material.findings?.[0]?.text || material.content || 'No preview available.'
             const materialCard = (
               <>
               <div className="mb-6 flex items-start justify-between gap-4">
