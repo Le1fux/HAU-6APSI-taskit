@@ -196,8 +196,6 @@ server/                  Express/PostgreSQL API
 compose.yml              optional PostgreSQL and API services
 .env.example             local Compose placeholders; copy to ignored root .env
 .dockerignore            excludes local env, dependencies, and build output from image context
-docs/                    weekly project log
-project/REPORT.md         project increment report
 ```
 
 ## Screenshots
