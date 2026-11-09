@@ -29,12 +29,14 @@ Start with the client in mock mode. This is the quickest way to run the app and 
 
 ### 1. Clone the project
 
-Open PowerShell in the folder where you keep projects:
+For a fresh clone, open PowerShell in the **parent folder** where you want the project created. For example, to create `C:\Users\USER\Documents\StudyLens`, start in `C:\Users\USER\Documents` (not inside an existing `StudyLens` folder):
 
 ```powershell
-git clone https://github.com/Le1fux/HAU-6APSI-taskit.git StudyLens
+git clone https://github.com/Le1fux/StudyLens.git StudyLens
 Set-Location .\StudyLens
 ```
+
+If you already have this project open in `C:\Users\USER\Documents\StudyLens`, skip the clone commands and continue from that folder; `Set-Location .\StudyLens` would look for a nested `StudyLens` folder.
 
 ### 2. Install and start the client
 

@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom'
-import SourceLinks from '../components/SourceLinks.jsx'
 import { getFallbackQuestions } from '../utils/fallbackQuestions.js'
 import { getBuiltInQuestions } from '../data/builtInMaterials.js'
 
@@ -130,7 +129,6 @@ export default function QuizPage({
                 <p className="mt-2 text-sm leading-7 text-slate-700 sm:text-base">{currentQuestion.explanation || currentQuestion.answer}</p>
                 {currentQuestion.page && <p className="mt-3 text-xs font-bold text-primary">Source: page {currentQuestion.page}</p>}
                 {currentQuestion.evidence && <blockquote className="mt-2 border-l-2 border-primary/30 pl-3 text-small italic text-slate-500">“{currentQuestion.evidence}”</blockquote>}
-                <SourceLinks sourceIds={currentQuestion.sourceIds} sources={currentQuestion.sources} />
               </div>
               : <button type="button" disabled={selectedOption === null} onClick={checkMultipleChoice} className="mt-5 min-h-12 w-full rounded-xl bg-primary px-5 py-3 font-bold text-white transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto">Check answer</button>}
             {answerRevealed && <button type="button" onClick={advanceQuestion} className="mt-5 min-h-12 w-full rounded-xl bg-primary px-5 py-3 font-bold text-white transition hover:bg-primary/90 sm:w-auto">Continue to next question</button>}
@@ -148,9 +146,8 @@ export default function QuizPage({
                   {currentQuestion.page && <span className="mt-3 block text-xs font-bold text-primary">Source: page {currentQuestion.page}</span>}
                   {currentQuestion.evidence && <span className="mt-2 block border-l-2 border-primary/30 pl-3 text-small font-normal italic text-slate-500">“{currentQuestion.evidence}”</span>}
                 </>
-                : 'Reveal the answer and source'}
+                : 'Reveal the answer and explanation'}
             </button>
-            {answerRevealed && <SourceLinks sourceIds={currentQuestion.sourceIds} sources={currentQuestion.sources} />}
             <div className="mt-8 border-t border-slate-100 pt-6">
               <p className="text-small text-slate-500">How did you do?</p>
               <div className="mt-3 grid gap-3 sm:grid-cols-2">

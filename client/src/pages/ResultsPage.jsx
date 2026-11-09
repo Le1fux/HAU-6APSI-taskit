@@ -1,5 +1,4 @@
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
-import SourceLinks from '../components/SourceLinks.jsx'
 import { getFallbackQuestions } from '../utils/fallbackQuestions.js'
 import { getBuiltInQuestions } from '../data/builtInMaterials.js'
 
@@ -30,7 +29,7 @@ export default function ResultsPage({
     ? 'Excellent recall. You got every question right.'
     : percentage >= 70
       ? 'Good progress. Review the details below to strengthen recall.'
-      : 'Use the source notes below to revisit the key ideas, then try again.'
+      : 'Review the explanations below to revisit the key ideas, then try again.'
 
   if (!attemptComplete) return <Navigate to={`/materials/${id}`} replace />
 
@@ -58,7 +57,7 @@ export default function ResultsPage({
       <section className="mt-8" aria-labelledby="missed-heading">
         <div className="mb-4">
           <h2 id="missed-heading" className="text-xl font-bold text-text">Review missed questions</h2>
-          <p className="mt-1 text-small text-slate-500">Revisit the cited source and try to answer each question in your own words.</p>
+          <p className="mt-1 text-small text-slate-500">Review the explanations and try to answer each question in your own words.</p>
         </div>
         {missedQuestions.length > 0
           ? <div className="space-y-3">{missedQuestions.map((question) => <article key={question.id} className="rounded-xl border border-slate-200 bg-surface p-5">
@@ -69,7 +68,6 @@ export default function ResultsPage({
             {question.explanation && <p className="mt-2 rounded-lg bg-primary/5 p-3 text-small leading-6 text-slate-600"><span className="font-bold text-primary">Rationale:</span> {question.explanation}</p>}
             {question.page && <p className="mt-3 text-xs font-bold text-primary">Source: page {question.page}</p>}
             {question.evidence && <blockquote className="mt-2 border-l-2 border-primary/30 pl-3 text-small italic text-slate-500">“{question.evidence}”</blockquote>}
-            <SourceLinks sourceIds={question.sourceIds} sources={question.sources} />
           </article>)}</div>
           : <p className="rounded-xl border border-emerald-200 bg-emerald-50 p-5 text-small font-medium text-emerald-950">No missed questions this round. Keep reviewing periodically to reinforce what you learned.</p>}
 

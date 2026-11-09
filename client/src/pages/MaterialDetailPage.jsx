@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink, useParams } from 'react-router-dom'
-import SourceLinks from '../components/SourceLinks.jsx'
 import { getFallbackQuestions } from '../utils/fallbackQuestions.js'
 import { getBuiltInQuestions } from '../data/builtInMaterials.js'
 import { getById } from '../api/materials.js'
@@ -167,7 +166,6 @@ export default function MaterialDetailPage({
                         <p className="text-xs font-bold uppercase tracking-wide text-primary">Study application</p>
                         <p className="mt-1 text-sm leading-6 text-slate-600">{point.application}</p>
                       </div>}
-                      {typeof point === 'object' && <SourceLinks sourceIds={point.sourceIds} sources={material.sources} />}
                     </div>
                   </div>
                 </article>
@@ -185,7 +183,6 @@ export default function MaterialDetailPage({
                 <div className="flex items-start justify-between gap-3"><p className="font-semibold leading-7 text-text">{finding.text}</p>{!material.isBuiltIn && <span className="shrink-0 rounded-full bg-bg px-3 py-1 text-xs font-bold text-primary">{citation(finding.page)}</span>}</div>
                 {finding.explanation && <p className="mt-2 text-sm leading-7 text-slate-600">{finding.explanation}</p>}
                 {sourceExcerpt(finding.evidence)}
-                <SourceLinks sourceIds={finding.sourceIds} sources={material.sources} />
               </article>)}</div>
               : <p className="rounded-2xl border border-slate-200 bg-surface p-5 text-slate-500">No specific findings are available for this reviewer.</p>}
           </section>}
@@ -201,7 +198,6 @@ export default function MaterialDetailPage({
                 <p className="mt-2 text-sm leading-7 text-slate-600">{term.definition}</p>
                 {term.explanation && <p className="mt-2 text-sm leading-7 text-slate-600">{term.explanation}</p>}
                 {sourceExcerpt(term.evidence)}
-                <SourceLinks sourceIds={term.sourceIds} sources={material.sources} />
               </article>)}</div>
               : <p className="rounded-2xl border border-slate-200 bg-surface p-5 text-slate-500">No key concepts are available for this reviewer.</p>}
           </section>}
@@ -230,7 +226,6 @@ export default function MaterialDetailPage({
                   <p className="text-sm leading-7 text-slate-600 sm:text-base"><span className="font-bold text-text">Answer:</span> {question.answer || 'No answer is available for this question.'}</p>
                   {question.explanation && <p className="mt-2 rounded-xl bg-primary/5 p-3 text-sm leading-6 text-slate-600"><span className="font-bold text-primary">Rationale:</span> {question.explanation}</p>}
                   {!material.isBuiltIn && sourceExcerpt(question.evidence)}
-                  <SourceLinks sourceIds={question.sourceIds} sources={question.sources || material.sources} />
                 </div>
               </details>
             </article>)}</div>

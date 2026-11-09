@@ -55,7 +55,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-bg text-text">
+    <div className="mx-auto min-h-screen max-w-7xl border-x border-slate-200 bg-surface text-text">
       <Header />
       <Routes>
         <Route path="/" element={<MaterialsPage uploadedMaterials={materials} onReviewerCreated={saveReviewer} />} />
