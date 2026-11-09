@@ -12,23 +12,33 @@ class BusinessFundamentalsReviewer extends BuiltInReviewer {
       sources: [sources.accountingSource, sources.economicsSource],
       summary: [
         {
-          text: 'Accounting organizes, analyzes, and communicates financial information to support decisions. Business choices can also require nonfinancial considerations, such as reliability, customer needs, or operating conditions.',
+          title: 'Accounting turns information into decisions',
+          text: 'Accounting organizes, analyzes, and communicates financial information so people can make informed choices. Depending on the decision, relevant nonfinancial factors may matter too.',
+          application: 'Ask who will use the information and what decision it should support; include operational factors when financial amounts alone do not explain the choice.',
           sourceIds: [sources.accountingSource.id],
         },
         {
-          text: 'Financial accounting prepares reports about organizational financial performance for external stakeholders. Managerial accounting provides financial and nonfinancial information for internal decisions such as budgeting, pricing, and production-cost analysis.',
+          title: 'Financial and managerial accounting serve different users',
+          text: 'Financial accounting reports an organization’s financial performance for external users. Managerial accounting supplies internal decision-makers with financial and nonfinancial information.',
+          application: 'Classify the audience and purpose: external reporting points to financial accounting; planning, budgeting, pricing, and cost analysis point to managerial accounting.',
           sourceIds: [sources.accountingSource.id],
         },
         {
-          text: 'In economics, demand describes how much buyers are willing and able to purchase at different prices; quantity demanded means the amount buyers would purchase at one specific price.',
+          title: 'Demand is a relationship; quantity demanded is one amount',
+          text: 'Demand describes the quantities buyers are willing and able to purchase at different prices. Quantity demanded is the amount associated with a particular price, holding other relevant factors constant.',
+          application: 'A change in the good’s own price changes quantity demanded along a demand curve; a change in another demand factor can shift the curve.',
           sourceIds: [sources.economicsSource.id],
         },
         {
-          text: 'Supply describes how much producers are willing to bring to market at different prices; quantity supplied means the amount offered at one specific price.',
+          title: 'Supply is a relationship; quantity supplied is one amount',
+          text: 'Supply describes the quantities producers are willing to offer at different prices. Quantity supplied is the amount associated with a particular price, holding other relevant factors constant.',
+          application: 'A change in the good’s own price changes quantity supplied along a supply curve; a change in another supply factor can shift the curve.',
           sourceIds: [sources.economicsSource.id],
         },
         {
-          text: 'Market equilibrium occurs at the price where quantity demanded equals quantity supplied. At a price above equilibrium, the cited text illustrates excess supply (a surplus).',
+          title: 'Equilibrium matches buyers’ and sellers’ plans',
+          text: 'In the supply-and-demand model, equilibrium is where quantity demanded equals quantity supplied. A price above equilibrium creates a surplus; a price below it creates a shortage.',
+          application: 'Compare quantity supplied with quantity demanded at the stated price. The linked chapter’s numerical examples illustrate the model and are not current market data.',
           sourceIds: [sources.economicsSource.id],
         },
       ],

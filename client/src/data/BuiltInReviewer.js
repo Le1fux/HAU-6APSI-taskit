@@ -2,6 +2,7 @@ function cloneEntries(entries) {
   return entries.map((entry) => ({
     ...entry,
     ...(entry.sourceIds ? { sourceIds: [...entry.sourceIds] } : {}),
+    ...(entry.options ? { options: [...entry.options] } : {}),
   }))
 }
 
@@ -42,9 +43,13 @@ export default class BuiltInReviewer {
   }
 
   getQuestions() {
-    return this.questions.map((question, index) => ({
+    const questions = [...this.questions].sort((left, right) =>
+      Number(Array.isArray(right.options)) - Number(Array.isArray(left.options))
+    )
+    return questions.map((question, index) => ({
       ...question,
       ...(question.sourceIds ? { sourceIds: [...question.sourceIds] } : {}),
+      ...(question.options ? { options: [...question.options] } : {}),
       id: `${this.id}-${index + 1}`,
       materialId: this.id,
       sources: cloneEntries(this.sources),

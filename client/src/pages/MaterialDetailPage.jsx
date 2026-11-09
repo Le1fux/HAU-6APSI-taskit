@@ -96,6 +96,12 @@ export default function MaterialDetailPage({
   const summaryText = (point) => typeof point === 'string' ? point : point.text
   const vocabularyTerms = getVocabularyTerms(summaryPoints.map(summaryText))
   const citation = (page) => page ? `Page ${page}` : 'Source page unavailable'
+  const multipleChoiceCount = quizQuestions.filter((question) => Array.isArray(question.options)).length
+  const reviewerDescription = material?.id === 'philippine-cpale-reviewer'
+    ? 'Independent CPALE preparation with scenario-based practice and worked rationales. This is not official PRC/BOA material and does not guarantee a passing result.'
+    : material?.isBuiltIn
+      ? 'An illustrative sample for study practice. It is not an official exam blueprint or a substitute for your course materials.'
+      : 'Specific takeaways grounded in your document, with page references to check the source.'
   const sourceExcerpt = (evidence) => evidence
     ? <blockquote className="mt-3 border-l-2 border-primary/30 pl-3 text-small italic text-slate-500">“{evidence}”</blockquote>
     : null
@@ -118,9 +124,7 @@ export default function MaterialDetailPage({
           <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-primary">{material.isBuiltIn ? 'Built-in sample reviewer' : 'PDF study guide'}</p>
           <h1 className="text-2xl font-bold leading-tight tracking-tight text-text sm:text-3xl xl:text-4xl">{material.title}</h1>
           {material.course && <p className="mt-3 inline-flex rounded-full bg-primary/10 px-3 py-1 text-small font-bold text-primary">{material.course}</p>}
-          <p className="mt-3 max-w-4xl text-sm leading-6 text-slate-600 sm:text-base">
-            {material.isBuiltIn ? 'An illustrative sample for study practice. It is not an official exam blueprint or a substitute for your course materials.' : 'Specific takeaways grounded in your document, with page references to check the source.'}
-          </p>
+          <p className="mt-3 max-w-4xl text-sm leading-6 text-slate-600 sm:text-base">{reviewerDescription}</p>
         </div>
         <Link to={`/materials/${id}/quiz`} onClick={() => onStartQuiz(id, attemptComplete)} className="inline-flex min-h-12 w-full shrink-0 items-center justify-center rounded-xl bg-primary px-5 py-3 text-center font-bold text-white transition hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:w-auto">
           {attemptInProgress ? 'Continue practice quiz' : attemptComplete ? 'Start another attempt' : 'Start practice quiz'}
@@ -157,7 +161,12 @@ export default function MaterialDetailPage({
                   <div className="flex gap-3">
                     <span className="grid size-7 shrink-0 place-items-center rounded-full bg-primary/10 text-xs font-bold text-primary">{index + 1}</span>
                     <div className="min-w-0">
-                      <p className="text-sm leading-7 text-slate-700 sm:text-base">{highlightVocabulary(text, vocabularyTerms)}</p>
+                      {point.title && <h3 className="text-sm font-bold leading-6 text-text sm:text-base">{point.title}</h3>}
+                      <p className={`${point.title ? 'mt-2 ' : ''}text-sm leading-7 text-slate-700 sm:text-base`}>{highlightVocabulary(text, vocabularyTerms)}</p>
+                      {point.application && <div className="mt-4 rounded-xl bg-primary/5 p-3 sm:p-4">
+                        <p className="text-xs font-bold uppercase tracking-wide text-primary">Study application</p>
+                        <p className="mt-1 text-sm leading-6 text-slate-600">{point.application}</p>
+                      </div>}
                       {typeof point === 'object' && <SourceLinks sourceIds={point.sourceIds} sources={material.sources} />}
                     </div>
                   </div>
@@ -199,14 +208,31 @@ export default function MaterialDetailPage({
 
           {section === 'questions' && <section aria-labelledby="practice-heading">
             <div className="mb-4 flex flex-wrap items-end justify-between gap-2 sm:mb-5">
-              <div><h2 id="practice-heading" className="text-xl font-bold text-text sm:text-2xl">Practice questions and answers</h2><p className="mt-1 text-sm text-slate-500">Study each question, then check its answer and references.</p></div>
+              <div><h2 id="practice-heading" className="text-xl font-bold text-text sm:text-2xl">Practice questions and answers</h2><p className="mt-1 text-sm text-slate-500">{multipleChoiceCount ? `${multipleChoiceCount} original scored multiple-choice problems plus recall questions. Try them unaided; this independent practice is not copied from an official exam.` : 'Study each question, then check its answer and references.'}</p></div>
               <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary">{quizQuestions.length} questions</span>
             </div>
             <div className="grid gap-3 xl:grid-cols-2">{quizQuestions.map((question, index) => <article key={question.id || `${index}-${question.question}`} className="flex min-w-0 flex-col rounded-2xl border border-slate-200 bg-surface p-4 shadow-sm sm:p-5">
-              <div className="flex items-start justify-between gap-3"><p className="font-semibold leading-7 text-text"><span className="mr-2 text-primary">{index + 1}.</span>{question.question}</p>{!material.isBuiltIn && <span className="shrink-0 rounded-full bg-bg px-3 py-1 text-xs font-bold text-primary">{citation(question.page)}</span>}</div>
-              <p className="mt-3 text-sm leading-7 text-slate-600 sm:text-base"><span className="font-bold text-text">Answer:</span> {question.answer || 'No answer is available for this question.'}</p>
-              {!material.isBuiltIn && sourceExcerpt(question.evidence)}
-              <div className="mt-auto"><SourceLinks sourceIds={question.sourceIds} sources={question.sources || material.sources} /></div>
+              <div className="flex items-start justify-between gap-3">
+                <p className="font-semibold leading-7 text-text"><span className="mr-2 text-primary">{index + 1}.</span>{question.question}</p>
+                <div className="flex shrink-0 flex-col items-end gap-1">
+                  {question.topic && <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-bold text-primary">{question.topic}</span>}
+                  {!material.isBuiltIn && <span className="rounded-full bg-bg px-3 py-1 text-xs font-bold text-primary">{citation(question.page)}</span>}
+                </div>
+              </div>
+              {question.difficulty && <p className="mt-2 text-xs font-semibold text-slate-500">{question.difficulty} question</p>}
+              {question.options && <ol className="mt-3 space-y-2 text-sm leading-6 text-slate-600">{question.options.map((option, optionIndex) => <li key={option}><span className="mr-2 font-bold text-primary">{String.fromCharCode(65 + optionIndex)}.</span>{option}</li>)}</ol>}
+              <details className="group mt-4 border-t border-slate-100 pt-3">
+                <summary className="min-h-10 cursor-pointer py-2 text-sm font-bold text-primary marker:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+                  <span className="group-open:hidden">Show answer</span>
+                  <span className="hidden group-open:inline">Hide answer</span>
+                </summary>
+                <div className="pb-1">
+                  <p className="text-sm leading-7 text-slate-600 sm:text-base"><span className="font-bold text-text">Answer:</span> {question.answer || 'No answer is available for this question.'}</p>
+                  {question.explanation && <p className="mt-2 rounded-xl bg-primary/5 p-3 text-sm leading-6 text-slate-600"><span className="font-bold text-primary">Rationale:</span> {question.explanation}</p>}
+                  {!material.isBuiltIn && sourceExcerpt(question.evidence)}
+                  <SourceLinks sourceIds={question.sourceIds} sources={question.sources || material.sources} />
+                </div>
+              </details>
             </article>)}</div>
           </section>}
         </div>

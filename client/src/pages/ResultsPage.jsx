@@ -52,6 +52,7 @@ export default function ResultsPage({
         <div className="mt-6 h-2 overflow-hidden rounded-full bg-white/25" role="progressbar" aria-label="Quiz score" aria-valuemin={0} aria-valuemax={total} aria-valuenow={score}>
           <div className="h-full rounded-full bg-white transition-all" style={{ width: `${percentage}%` }} />
         </div>
+        <p className="mt-3 text-xs leading-5 text-white/75">This score reflects this practice set only; it is not an official licensure score or a prediction of exam results.</p>
       </section>
 
       <section className="mt-8" aria-labelledby="missed-heading">
@@ -61,8 +62,11 @@ export default function ResultsPage({
         </div>
         {missedQuestions.length > 0
           ? <div className="space-y-3">{missedQuestions.map((question) => <article key={question.id} className="rounded-xl border border-slate-200 bg-surface p-5">
+            {question.topic && <p className="mb-2 text-xs font-bold uppercase tracking-wide text-primary">{question.topic} · {question.difficulty}</p>}
             <p className="font-bold text-text">{question.question}</p>
+            {question.options && <ol className="mt-3 space-y-1 text-small leading-6 text-slate-600">{question.options.map((option, index) => <li key={option}><span className="mr-2 font-bold text-primary">{String.fromCharCode(65 + index)}.</span>{option}</li>)}</ol>}
             <p className="mt-3 text-small leading-6 text-slate-600">{question.answer}</p>
+            {question.explanation && <p className="mt-2 rounded-lg bg-primary/5 p-3 text-small leading-6 text-slate-600"><span className="font-bold text-primary">Rationale:</span> {question.explanation}</p>}
             {question.page && <p className="mt-3 text-xs font-bold text-primary">Source: page {question.page}</p>}
             {question.evidence && <blockquote className="mt-2 border-l-2 border-primary/30 pl-3 text-small italic text-slate-500">“{question.evidence}”</blockquote>}
             <SourceLinks sourceIds={question.sourceIds} sources={question.sources} />

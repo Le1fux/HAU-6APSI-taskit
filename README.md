@@ -3,7 +3,7 @@ StudyLens is a general PDF reviewer that creates focused, source-grounded study 
 
 ## Intended user and problem
 
-StudyLens is for learners who want to understand material in detail and verify study takeaways against source documents. The built-in CPALE reviewer is an independent, source-linked study guide with 30 practice questions across six subjects, including expanded Philippine tax and business-law coverage. It is not an official or exhaustive syllabus; verify exam coverage, current statutes, BIR issuances, and Philippine-adopted standards with the PRC, Board of Accountancy, and relevant government sources. The Accounting and Economics samples are focused excerpts from the linked OpenStax chapters. AI-powered analysis requires the server API and an Anthropic API key; the default local mode generates a text-based reviewer with a more varied extractive summary.
+StudyLens is for learners who want to prepare rigorously and verify study takeaways against source documents. The built-in CPALE reviewer is an independent study aid with 48 questions across six subjects, including scenario-based multiple-choice questions with worked rationales and expanded Philippine tax and business-law coverage. It is not an official PRC/BOA publication, a complete syllabus, or a guarantee of passing. Verify exam coverage, current statutes, BIR issuances, and Philippine-adopted standards with official sources. The Accounting and Economics samples are focused excerpts from the linked OpenStax chapters. AI-powered analysis requires the server API and an Anthropic API key; the default local mode generates a text-based reviewer with a more varied extractive summary.
 
 ## Technology stack
 
