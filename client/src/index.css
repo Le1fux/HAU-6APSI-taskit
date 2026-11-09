@@ -32,6 +32,14 @@
     -webkit-tap-highlight-color: transparent;
   }
 
+  .reviewer-nav-scroll {
+    scrollbar-width: none;
+  }
+
+  .reviewer-nav-scroll::-webkit-scrollbar {
+    display: none;
+  }
+
   ::selection {
     color: #ffffff;
     background: #0f766e;

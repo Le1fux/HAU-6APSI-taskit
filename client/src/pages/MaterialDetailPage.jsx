@@ -99,78 +99,118 @@ export default function MaterialDetailPage({
   const sourceExcerpt = (evidence) => evidence
     ? <blockquote className="mt-3 border-l-2 border-primary/30 pl-3 text-small italic text-slate-500">“{evidence}”</blockquote>
     : null
+  const sections = [
+    { key: 'questions', label: 'Questions and answers', path: `/materials/${id}`, count: quizQuestions.length },
+    { key: 'summary', label: 'Summary', path: `/materials/${id}/summary`, count: summaryPoints.length },
+    { key: 'findings', label: 'Specific findings', path: `/materials/${id}/findings`, count: findings.length },
+    { key: 'concepts', label: 'Key concepts', path: `/materials/${id}/concepts`, count: keyTerms.length },
+  ]
 
   return (
-    <main className="mx-auto max-w-6xl px-5 py-10 lg:px-8 lg:py-14">
-      <Link to="/" className="text-small font-bold text-primary hover:underline">&lt;- Back to library</Link>
-      {loading && <p className="mt-8 text-slate-500" role="status">Loading reviewer...</p>}
-      {!loading && error && <p className="mt-8 text-red-600" role="alert">{error}</p>}
-      {!loading && !error && !material && <p className="mt-8 text-slate-500">Reviewer not found.</p>}
+    <main className="mx-auto max-w-screen-2xl px-4 py-5 sm:px-6 sm:py-8 xl:px-10 xl:py-10">
+      <Link to="/" className="inline-flex min-h-10 items-center text-small font-bold text-primary hover:underline">&lt;- Back to library</Link>
+      {loading && <p className="mt-6 text-slate-500" role="status">Loading reviewer...</p>}
+      {!loading && error && <p className="mt-6 text-red-600" role="alert">{error}</p>}
+      {!loading && !error && !material && <p className="mt-6 text-slate-500">Reviewer not found.</p>}
       {!loading && !error && material && <>
-      <div className="mt-8 flex flex-col justify-between gap-5 border-b border-slate-200 pb-8 sm:flex-row sm:items-end">
-        <div><p className="mb-2 text-small font-bold uppercase tracking-[0.16em] text-primary">{material.isBuiltIn ? 'Built-in sample reviewer' : 'PDF study guide'}</p><h1 className="text-heading tracking-tight text-text">{material.title}</h1>{material.course && <p className="mt-2 inline-flex rounded-full bg-primary/10 px-3 py-1 text-small font-bold text-primary">{material.course}</p>}<p className="mt-3 text-slate-500">{material.isBuiltIn ? 'An illustrative sample for study practice. It is not an official exam blueprint or a substitute for your course materials.' : 'Specific takeaways grounded in your document, with page references to check the source.'}</p></div>
-        <Link to={`/materials/${id}/quiz`} onClick={() => onStartQuiz(id, attemptComplete)} className="rounded-xl bg-primary px-5 py-3 text-center font-bold text-white transition hover:bg-primary/90">
+      <header className="mt-5 flex flex-col gap-5 rounded-2xl border border-slate-200 bg-surface p-5 shadow-sm sm:mt-7 sm:p-7 xl:flex-row xl:items-end xl:justify-between xl:gap-8">
+        <div className="min-w-0">
+          <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-primary">{material.isBuiltIn ? 'Built-in sample reviewer' : 'PDF study guide'}</p>
+          <h1 className="text-2xl font-bold leading-tight tracking-tight text-text sm:text-3xl xl:text-4xl">{material.title}</h1>
+          {material.course && <p className="mt-3 inline-flex rounded-full bg-primary/10 px-3 py-1 text-small font-bold text-primary">{material.course}</p>}
+          <p className="mt-3 max-w-4xl text-sm leading-6 text-slate-600 sm:text-base">
+            {material.isBuiltIn ? 'An illustrative sample for study practice. It is not an official exam blueprint or a substitute for your course materials.' : 'Specific takeaways grounded in your document, with page references to check the source.'}
+          </p>
+        </div>
+        <Link to={`/materials/${id}/quiz`} onClick={() => onStartQuiz(id, attemptComplete)} className="inline-flex min-h-12 w-full shrink-0 items-center justify-center rounded-xl bg-primary px-5 py-3 text-center font-bold text-white transition hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:w-auto">
           {attemptInProgress ? 'Continue practice quiz' : attemptComplete ? 'Start another attempt' : 'Start practice quiz'}
         </Link>
+      </header>
+
+      <div className="mt-5">
+        <nav aria-label="Reviewer sections" className="sticky top-0 z-20 -mx-4 mb-5 border-y border-slate-200 bg-bg/95 px-4 py-2 backdrop-blur sm:-mx-6 sm:px-6 xl:mb-7">
+          <div className="reviewer-nav-scroll flex flex-nowrap gap-2 overflow-x-auto whitespace-nowrap">
+            {sections.map((item) => (
+              <NavLink
+                key={item.key}
+                to={item.path}
+                end
+                className={({ isActive }) => `inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-full px-3 py-2 text-xs font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:px-4 sm:text-small ${isActive ? 'bg-primary text-white shadow-sm' : 'border border-slate-200 bg-surface text-slate-700 hover:border-primary/40 hover:text-primary'}`}
+              >
+                <span>{item.label}</span>
+                <span className={`text-xs ${item.key === section ? 'text-white/75' : 'text-slate-400'}`}>{item.count}</span>
+              </NavLink>
+            ))}
+          </div>
+        </nav>
+
+        <div className="min-w-0">
+          {section === 'summary' && <section aria-labelledby="summary-heading">
+            <div className="mb-4 sm:mb-5">
+              <h2 id="summary-heading" className="text-xl font-bold text-text sm:text-2xl">Full summary</h2>
+              <p className="mt-1 text-sm text-slate-500">Core ideas and takeaways from this reviewer.</p>
+            </div>
+            {summaryPoints.length
+              ? <div className="grid gap-3 md:grid-cols-2 2xl:grid-cols-3">{summaryPoints.map((point, index) => {
+                const text = summaryText(point)
+                return <article key={`${index}-${text}`} className="rounded-2xl border border-slate-200 bg-surface p-4 shadow-sm sm:p-5">
+                  <div className="flex gap-3">
+                    <span className="grid size-7 shrink-0 place-items-center rounded-full bg-primary/10 text-xs font-bold text-primary">{index + 1}</span>
+                    <div className="min-w-0">
+                      <p className="text-sm leading-7 text-slate-700 sm:text-base">{highlightVocabulary(text, vocabularyTerms)}</p>
+                      {typeof point === 'object' && <SourceLinks sourceIds={point.sourceIds} sources={material.sources} />}
+                    </div>
+                  </div>
+                </article>
+              })}</div>
+              : <p className="rounded-2xl border border-slate-200 bg-surface p-5 leading-7 text-slate-600">{material.content || 'No notes added yet.'}</p>}
+          </section>}
+
+          {section === 'findings' && <section aria-labelledby="findings-heading">
+            <div className="mb-4 sm:mb-5">
+              <h2 id="findings-heading" className="text-xl font-bold text-text sm:text-2xl">Specific findings</h2>
+              <p className="mt-1 text-sm text-slate-500">{material.isBuiltIn ? 'Core ideas covered by this sample reviewer.' : 'Each point includes its source location and supporting excerpt.'}</p>
+            </div>
+            {findings.length
+              ? <div className="grid gap-3 md:grid-cols-2 2xl:grid-cols-3">{findings.map((finding, index) => <article key={`${index}-${finding.text}`} className="rounded-2xl border border-slate-200 bg-surface p-4 shadow-sm sm:p-5">
+                <div className="flex items-start justify-between gap-3"><p className="font-semibold leading-7 text-text">{finding.text}</p>{!material.isBuiltIn && <span className="shrink-0 rounded-full bg-bg px-3 py-1 text-xs font-bold text-primary">{citation(finding.page)}</span>}</div>
+                {finding.explanation && <p className="mt-2 text-sm leading-7 text-slate-600">{finding.explanation}</p>}
+                {sourceExcerpt(finding.evidence)}
+                <SourceLinks sourceIds={finding.sourceIds} sources={material.sources} />
+              </article>)}</div>
+              : <p className="rounded-2xl border border-slate-200 bg-surface p-5 text-slate-500">No specific findings are available for this reviewer.</p>}
+          </section>}
+
+          {section === 'concepts' && <section aria-labelledby="terms-heading">
+            <div className="mb-4 sm:mb-5">
+              <h2 id="terms-heading" className="text-xl font-bold text-text sm:text-2xl">{material.isBuiltIn ? 'Key concepts' : 'Key terms from the PDF'}</h2>
+              <p className="mt-1 text-sm text-slate-500">Review definitions and supporting explanations.</p>
+            </div>
+            {keyTerms.length
+              ? <div className="grid gap-3 md:grid-cols-2 2xl:grid-cols-3">{keyTerms.map((term, index) => <article key={`${index}-${term.term}`} className="rounded-2xl border border-slate-200 bg-surface p-4 shadow-sm sm:p-5">
+                <div className="flex items-start justify-between gap-3"><h3 className="font-bold leading-6 text-text">{term.term}</h3>{!material.isBuiltIn && <span className="shrink-0 rounded-full bg-bg px-3 py-1 text-xs font-bold text-primary">{citation(term.page)}</span>}</div>
+                <p className="mt-2 text-sm leading-7 text-slate-600">{term.definition}</p>
+                {term.explanation && <p className="mt-2 text-sm leading-7 text-slate-600">{term.explanation}</p>}
+                {sourceExcerpt(term.evidence)}
+                <SourceLinks sourceIds={term.sourceIds} sources={material.sources} />
+              </article>)}</div>
+              : <p className="rounded-2xl border border-slate-200 bg-surface p-5 text-slate-500">No key concepts are available for this reviewer.</p>}
+          </section>}
+
+          {section === 'questions' && <section aria-labelledby="practice-heading">
+            <div className="mb-4 flex flex-wrap items-end justify-between gap-2 sm:mb-5">
+              <div><h2 id="practice-heading" className="text-xl font-bold text-text sm:text-2xl">Practice questions and answers</h2><p className="mt-1 text-sm text-slate-500">Study each question, then check its answer and references.</p></div>
+              <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary">{quizQuestions.length} questions</span>
+            </div>
+            <div className="grid gap-3 xl:grid-cols-2">{quizQuestions.map((question, index) => <article key={question.id || `${index}-${question.question}`} className="flex min-w-0 flex-col rounded-2xl border border-slate-200 bg-surface p-4 shadow-sm sm:p-5">
+              <div className="flex items-start justify-between gap-3"><p className="font-semibold leading-7 text-text"><span className="mr-2 text-primary">{index + 1}.</span>{question.question}</p>{!material.isBuiltIn && <span className="shrink-0 rounded-full bg-bg px-3 py-1 text-xs font-bold text-primary">{citation(question.page)}</span>}</div>
+              <p className="mt-3 text-sm leading-7 text-slate-600 sm:text-base"><span className="font-bold text-text">Answer:</span> {question.answer || 'No answer is available for this question.'}</p>
+              {!material.isBuiltIn && sourceExcerpt(question.evidence)}
+              <div className="mt-auto"><SourceLinks sourceIds={question.sourceIds} sources={question.sources || material.sources} /></div>
+            </article>)}</div>
+          </section>}
+        </div>
       </div>
-      <nav aria-label="Reviewer sections" className="mt-6 flex flex-wrap gap-2 border-b border-slate-200 pb-4">
-        {[
-          { key: 'questions', label: 'Questions and answers', path: `/materials/${id}` },
-          { key: 'summary', label: 'Summary', path: `/materials/${id}/summary` },
-          { key: 'findings', label: 'Specific findings', path: `/materials/${id}/findings` },
-          { key: 'concepts', label: 'Key concepts', path: `/materials/${id}/concepts` },
-        ].map((item) => (
-          <NavLink
-            key={item.key}
-            to={item.path}
-            end
-            className={({ isActive }) => `rounded-full px-4 py-2 text-small font-semibold transition-colors ${isActive ? 'bg-primary text-white' : 'border border-primary/30 text-primary hover:bg-primary/5'}`}
-          >
-            {item.label}
-          </NavLink>
-        ))}
-      </nav>
-      {section === 'summary' && <section className="mt-8 rounded-2xl border border-slate-200 bg-surface p-6 shadow-soft sm:p-8" aria-labelledby="summary-heading">
-        <h2 id="summary-heading" className="text-2xl font-bold text-text">Full summary</h2>
-        {summaryPoints.length
-          ? <ul className="mt-5 list-disc space-y-5 pl-5 text-base leading-8 text-slate-600">{summaryPoints.map((point, index) => {
-            const text = summaryText(point)
-            return <li key={`${index}-${text}`}>{highlightVocabulary(text, vocabularyTerms)}{typeof point === 'object' && <SourceLinks sourceIds={point.sourceIds} sources={material.sources} />}</li>
-          })}</ul>
-          : <p className="mt-4 whitespace-pre-wrap leading-8 text-slate-600">{material.content || 'No notes added yet.'}</p>}
-      </section>}
-      {section === 'findings' && <section className="mt-8" aria-labelledby="findings-heading">
-        <div className="mb-4"><h2 id="findings-heading" className="text-xl font-bold text-text">Specific findings</h2><p className="mt-1 text-small text-slate-500">{material.isBuiltIn ? 'Core ideas covered by this sample reviewer.' : 'Each point includes its source location and supporting excerpt.'}</p></div>
-        {findings.length
-          ? <div className="space-y-3">{findings.map((finding, index) => <article key={`${index}-${finding.text}`} className="rounded-xl border border-slate-200 bg-surface p-5">
-            <div className="flex items-start justify-between gap-3"><p className="font-semibold leading-7 text-text">{finding.text}</p>{!material.isBuiltIn && <span className="shrink-0 rounded-full bg-bg px-3 py-1 text-xs font-bold text-primary">{citation(finding.page)}</span>}</div>
-            {finding.explanation && <p className="mt-2 text-small leading-6 text-slate-600">{finding.explanation}</p>}
-            {sourceExcerpt(finding.evidence)}
-            <SourceLinks sourceIds={finding.sourceIds} sources={material.sources} />
-          </article>)}</div>
-          : <p className="rounded-xl border border-slate-200 bg-surface p-5 text-slate-500">No specific findings are available for this reviewer.</p>}
-      </section>}
-      {section === 'concepts' && <section className="mt-8" aria-labelledby="terms-heading">
-        <h2 id="terms-heading" className="mb-4 text-xl font-bold text-text">{material.isBuiltIn ? 'Key concepts' : 'Key terms from the PDF'}</h2>
-        {keyTerms.length
-          ? <div className="grid gap-3 sm:grid-cols-2">{keyTerms.map((term, index) => <article key={`${index}-${term.term}`} className="rounded-xl border border-slate-200 bg-surface p-5">
-            <div className="flex items-start justify-between gap-3"><h3 className="font-bold text-text">{term.term}</h3>{!material.isBuiltIn && <span className="shrink-0 rounded-full bg-bg px-3 py-1 text-xs font-bold text-primary">{citation(term.page)}</span>}</div>
-            <p className="mt-2 text-small leading-6 text-slate-600">{term.definition}</p>
-            {term.explanation && <p className="mt-2 text-small leading-6 text-slate-600">{term.explanation}</p>}
-            {sourceExcerpt(term.evidence)}
-            <SourceLinks sourceIds={term.sourceIds} sources={material.sources} />
-          </article>)}</div>
-          : <p className="rounded-xl border border-slate-200 bg-surface p-5 text-slate-500">No key concepts are available for this reviewer.</p>}
-      </section>}
-      {section === 'questions' && <section className="mt-8" aria-labelledby="practice-heading">
-        <div className="mb-4 flex items-center justify-between"><h2 id="practice-heading" className="text-xl font-bold text-text">Practice questions and answers</h2><span className="text-small text-slate-400">{quizQuestions.length} questions</span></div>
-        <div className="space-y-3">{quizQuestions.map((question, index) => <article key={question.id || `${index}-${question.question}`} className="rounded-xl border border-slate-200 bg-surface p-5">
-          <div className="flex items-start justify-between gap-3"><p className="font-semibold leading-7 text-text"><span className="mr-2 text-primary">{index + 1}.</span>{question.question}</p>{!material.isBuiltIn && <span className="shrink-0 rounded-full bg-bg px-3 py-1 text-xs font-bold text-primary">{citation(question.page)}</span>}</div>
-          <p className="mt-3 text-small leading-6 text-slate-600"><span className="font-bold text-text">Answer:</span> {question.answer || 'No answer is available for this question.'}</p>
-          {!material.isBuiltIn && sourceExcerpt(question.evidence)}
-          <SourceLinks sourceIds={question.sourceIds} sources={question.sources || material.sources} />
-        </article>)}</div>
-      </section>}
       </>}
     </main>
   )
