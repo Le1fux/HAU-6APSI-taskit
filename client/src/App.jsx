@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Route, Routes } from 'react-router-dom'
 import Header from './components/Header.jsx'
 import MaterialDetailPage from './pages/MaterialDetailPage.jsx'
@@ -6,11 +6,31 @@ import MaterialsPage from './pages/MaterialsPage.jsx'
 import QuizPage from './pages/QuizPage.jsx'
 import ResultsPage from './pages/ResultsPage.jsx'
 
+const THEME_STORAGE_KEY = 'studylens-theme'
+
 // Owns materials created during this app session.
 export default function App() {
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    try {
+      return window.localStorage.getItem(THEME_STORAGE_KEY) === 'dark'
+    } catch (error) {
+      console.error('Unable to read the saved theme preference.', error)
+      return false
+    }
+  })
   const [materials, setMaterials] = useState([])
   const [questions, setQuestions] = useState([])
   const [answersByMaterial, setAnswersByMaterial] = useState({})
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', isDarkMode)
+    document.documentElement.style.colorScheme = isDarkMode ? 'dark' : 'light'
+    try {
+      window.localStorage.setItem(THEME_STORAGE_KEY, isDarkMode ? 'dark' : 'light')
+    } catch (error) {
+      console.error('Unable to save the theme preference.', error)
+    }
+  }, [isDarkMode])
 
   // Stores the uploaded material and associates every generated question with it.
   function saveReviewer(material, reviewerQuestions) {
@@ -55,8 +75,8 @@ export default function App() {
   }
 
   return (
-    <div className="mx-auto min-h-screen max-w-7xl border-x border-slate-200 bg-surface text-text">
-      <Header />
+    <div className="mx-auto min-h-screen max-w-6xl border-x border-slate-200 bg-surface text-text">
+      <Header isDarkMode={isDarkMode} onToggleTheme={() => setIsDarkMode((current) => !current)} />
       <Routes>
         <Route path="/" element={<MaterialsPage uploadedMaterials={materials} onReviewerCreated={saveReviewer} />} />
         <Route path="/materials/:id" element={<MaterialDetailPage uploadedMaterials={materials} questions={questions} answersByMaterial={answersByMaterial} onStartQuiz={startQuiz} />} />

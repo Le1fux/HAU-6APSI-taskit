@@ -1,6 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  darkMode: 'class',
   theme: {
     screens: {
       sm: '640px',
@@ -11,11 +12,11 @@ export default {
     },
     extend: {
       colors: {
-        primary: '#0F766E',
-        accent: '#B45309',
-        bg: '#F4F7F6',
-        surface: '#FFFFFF',
-        text: '#1E293B',
+      primary: 'rgb(var(--color-primary) / <alpha-value>)',
+      accent: '#B45309',
+      bg: 'rgb(var(--color-bg) / <alpha-value>)',
+      surface: 'rgb(var(--color-surface) / <alpha-value>)',
+      text: 'rgb(var(--color-text) / <alpha-value>)',
       },
       fontSize: {
         heading: ['1.5rem', { lineHeight: '1.25', fontWeight: '700' }],

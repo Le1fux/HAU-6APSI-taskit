@@ -9,7 +9,7 @@ export default function Button({
 }) {
   const variantClasses = variant === 'secondary'
     ? 'border border-primary bg-surface text-primary hover:bg-bg'
-    : 'bg-primary text-surface hover:bg-primary/90'
+    : 'bg-primary text-white hover:bg-primary/90'
 
   return (
     <button

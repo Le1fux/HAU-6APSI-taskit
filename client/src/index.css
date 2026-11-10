@@ -6,9 +6,22 @@
   :root {
     font-family: 'DM Sans', 'Segoe UI', sans-serif;
     color: #172033;
-    background: #f4f7f6;
+    background: rgb(var(--color-bg));
+    color-scheme: light;
+    --color-primary: 15 118 110;
+    --color-bg: 244 247 246;
+    --color-surface: 255 255 255;
+    --color-text: 30 41 59;
     font-synthesis: none;
     text-rendering: optimizeLegibility;
+  }
+
+  .dark {
+    --color-primary: 17 94 89;
+    --color-bg: 15 23 42;
+    --color-surface: 30 41 59;
+    --color-text: 226 232 240;
+    color-scheme: dark;
   }
 
   * {
@@ -18,7 +31,7 @@
   body {
     min-width: 320px;
     margin: 0;
-    background: #f4f7f6;
+    background: rgb(var(--color-bg));
   }
 
   button,
@@ -43,5 +56,84 @@
   ::selection {
     color: #ffffff;
     background: #0f766e;
+  }
+
+  .dark .text-primary,
+  .dark .hover\:text-primary:hover {
+    color: #5eead4;
+  }
+
+  .dark .text-slate-400,
+  .dark .text-slate-500 {
+    color: #a8b7c9;
+  }
+
+  .dark .text-slate-600,
+  .dark .text-slate-700 {
+    color: #d3deeb;
+  }
+
+  .dark .bg-slate-50,
+  .dark .bg-slate-100 {
+    background-color: #334155;
+  }
+
+  .dark .border-slate-100,
+  .dark .border-slate-200 {
+    border-color: #475569;
+  }
+
+  .dark .border-slate-300 {
+    border-color: #64748b;
+  }
+
+  .dark .bg-amber-50 {
+    background-color: #451a03;
+  }
+
+  .dark .bg-amber-100 {
+    background-color: #78350f;
+  }
+
+  .dark .text-amber-950 {
+    color: #fef3c7;
+  }
+
+  .dark .border-amber-300 {
+    border-color: #b45309;
+  }
+
+  .dark .bg-emerald-50 {
+    background-color: #064e3b;
+  }
+
+  .dark .text-emerald-950 {
+    color: #d1fae5;
+  }
+
+  .dark .text-emerald-700 {
+    color: #6ee7b7;
+  }
+
+  .dark .border-emerald-200 {
+    border-color: #047857;
+  }
+
+  .dark .bg-red-50 {
+    background-color: #450a0a;
+  }
+
+  .dark .text-red-950 {
+    color: #fee2e2;
+  }
+
+  .dark .text-red-700,
+  .dark .text-red-600 {
+    color: #fca5a5;
+  }
+
+  .dark .border-red-400,
+  .dark .border-red-300 {
+    border-color: #b91c1c;
   }
 }
