@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Route, Routes } from 'react-router-dom'
+import { Navigate, Route, Routes } from 'react-router-dom'
 import Header from './components/Header.jsx'
 import MaterialDetailPage from './pages/MaterialDetailPage.jsx'
 import MaterialsPage from './pages/MaterialsPage.jsx'
@@ -78,11 +78,14 @@ export default function App() {
     <div className="mx-auto min-h-screen max-w-6xl border-x border-slate-200 bg-surface text-text">
       <Header isDarkMode={isDarkMode} onToggleTheme={() => setIsDarkMode((current) => !current)} />
       <Routes>
+        <Route path="/materials/philippine-cpale-reviewer" element={<Navigate to="/" replace />} />
+        <Route path="/materials/philippine-cpale-reviewer/:section" element={<Navigate to="/" replace />} />
         <Route path="/" element={<MaterialsPage uploadedMaterials={materials} onReviewerCreated={saveReviewer} />} />
         <Route path="/materials/:id" element={<MaterialDetailPage uploadedMaterials={materials} questions={questions} answersByMaterial={answersByMaterial} onStartQuiz={startQuiz} />} />
         <Route path="/materials/:id/summary" element={<MaterialDetailPage section="summary" uploadedMaterials={materials} questions={questions} answersByMaterial={answersByMaterial} onStartQuiz={startQuiz} />} />
         <Route path="/materials/:id/findings" element={<MaterialDetailPage section="findings" uploadedMaterials={materials} questions={questions} answersByMaterial={answersByMaterial} onStartQuiz={startQuiz} />} />
         <Route path="/materials/:id/concepts" element={<MaterialDetailPage section="concepts" uploadedMaterials={materials} questions={questions} answersByMaterial={answersByMaterial} onStartQuiz={startQuiz} />} />
+        <Route path="/materials/:id/sources" element={<MaterialDetailPage section="sources" uploadedMaterials={materials} questions={questions} answersByMaterial={answersByMaterial} onStartQuiz={startQuiz} />} />
         <Route path="/materials/:id/quiz" element={<QuizPage questions={questions} answersByMaterial={answersByMaterial} onAnswer={recordAnswer} onRetry={retryQuiz} />} />
         <Route path="/materials/:id/results" element={<ResultsPage questions={questions} answersByMaterial={answersByMaterial} />} />
       </Routes>

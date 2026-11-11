@@ -12,26 +12,30 @@ export const economicsSource = {
 
 export const cpaleProgramSource = {
   id: 'prc-cpale',
-  title: 'PRC: official licensure examination announcements',
+  title: 'PRC: official licensure examination announcements and schedules',
   url: 'https://www.prc.gov.ph/',
+  description: 'Check the PRC site for current examination schedules and any posted CPALE program or coverage updates.',
 }
 
 export const financialReportingSource = {
   id: 'ifrs-standards',
   title: 'IFRS Foundation: issued accounting standards',
   url: 'https://www.ifrs.org/issued-standards/list-of-standards/',
+  description: 'International standards reference; verify Philippine adoption and the version applicable to your exam coverage.',
 }
 
 export const managementAccountingSource = {
   id: 'openstax-managerial-accounting',
-  title: 'OpenStax: Principles of Managerial Accounting',
-  url: 'https://openstax.org/details/books/principles-managerial-accounting',
+  title: 'OpenStax: Principles of Managerial Accounting (supplemental)',
+  url: 'https://openstax.org/books/principles-managerial-accounting/pages/preface',
+  description: 'Free educational reference for management-accounting concepts; not PRC/BOA exam guidance.',
 }
 
 export const auditingStandardsSource = {
   id: 'iaasb-standards',
-  title: 'IAASB: current standards and pronouncements',
+  title: 'IAASB: international standards and pronouncements',
   url: 'https://www.iaasb.org/standards-pronouncements',
+  description: 'International auditing reference; check which standards have been adopted locally and are effective for your exam.',
 }
 
 export const accountancyActSource = {

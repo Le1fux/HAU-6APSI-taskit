@@ -1,10 +1,10 @@
 import accountingReviewer from './reviewers/accounting.js'
 import businessFundamentalsReviewer from './reviewers/businessFundamentals.js'
-import cpaleReviewer from './reviewers/cpale.js'
+import cpaleReviewers from './reviewers/cpaleSubjects.js'
 import economicsReviewer from './reviewers/economics.js'
 
 const builtInReviewers = [
-  cpaleReviewer,
+  ...cpaleReviewers,
   businessFundamentalsReviewer,
   accountingReviewer,
   economicsReviewer,

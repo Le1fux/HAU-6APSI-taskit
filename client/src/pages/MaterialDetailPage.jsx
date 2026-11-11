@@ -92,23 +92,26 @@ export default function MaterialDetailPage({
   const summaryPoints = Array.isArray(material?.summary) ? material.summary : []
   const findings = Array.isArray(material?.findings) ? material.findings : []
   const keyTerms = Array.isArray(material?.keyTerms) ? material.keyTerms : []
+  const referenceSources = Array.isArray(material?.sources) ? material.sources : []
   const summaryText = (point) => typeof point === 'string' ? point : point.text
   const vocabularyTerms = getVocabularyTerms(summaryPoints.map(summaryText))
   const citation = (page) => page ? `Page ${page}` : 'Source page unavailable'
   const multipleChoiceCount = quizQuestions.filter((question) => Array.isArray(question.options)).length
-  const reviewerDescription = material?.id === 'philippine-cpale-reviewer'
-    ? 'Independent CPALE preparation with scenario-based practice and worked rationales. This is not official PRC/BOA material and does not guarantee a passing result.'
+  const reviewerDescription = material?.id?.startsWith('cpale-')
+    ? 'An independent guide for one CPALE subject, with a topic map and practice questions. It is not an official or exhaustive PRC/BOA syllabus; verify the current program and applicable standards, laws, and rules.'
     : material?.isBuiltIn
       ? 'An illustrative sample for study practice. It is not an official exam blueprint or a substitute for your course materials.'
       : 'Specific takeaways grounded in your document, with page references to check the source.'
   const sourceExcerpt = (evidence) => evidence
     ? <blockquote className="mt-3 border-l-2 border-primary/30 pl-3 text-small italic text-slate-500">“{evidence}”</blockquote>
     : null
+  const sourceFor = (sourceId) => referenceSources.find((source) => source.id === sourceId)
   const sections = [
     { key: 'questions', label: 'Questions and answers', path: `/materials/${id}`, count: quizQuestions.length },
     { key: 'summary', label: 'Summary', path: `/materials/${id}/summary`, count: summaryPoints.length },
     { key: 'findings', label: 'Specific findings', path: `/materials/${id}/findings`, count: findings.length },
     { key: 'concepts', label: 'Key concepts', path: `/materials/${id}/concepts`, count: keyTerms.length },
+    { key: 'sources', label: 'Sources', path: `/materials/${id}/sources`, count: referenceSources.length },
   ]
 
   return (
@@ -229,6 +232,48 @@ export default function MaterialDetailPage({
                 </div>
               </details>
             </article>)}</div>
+          </section>}
+
+          {section === 'sources' && <section aria-labelledby="sources-heading">
+            <div className="mb-4 sm:mb-5">
+              <h2 id="sources-heading" className="text-xl font-bold text-text sm:text-2xl">Reference materials</h2>
+              <p className="mt-1 text-sm leading-6 text-slate-500">
+                These links support independent study; they are not an official PRC/BOA syllabus or question bank.
+                Links include official organizations, legal-text reproductions, and supplemental educational material.
+                Check current rules, local adoption, and exam coverage for your sitting.
+              </p>
+            </div>
+            {referenceSources.length
+              ? <>
+                {summaryPoints.some((point) => point && typeof point === 'object' && Array.isArray(point.sourceIds)) && <div className="mb-8 grid gap-3 md:grid-cols-2">
+                  {summaryPoints.filter((point) => point && typeof point === 'object' && Array.isArray(point.sourceIds)).map((point) => {
+                    const subjectSources = point.sourceIds.map(sourceFor).filter(Boolean)
+                    return <article key={point.title} className="rounded-2xl border border-slate-200 bg-surface p-4 shadow-sm sm:p-5">
+                      <h3 className="font-bold text-text">{point.title || 'Study topic'}</h3>
+                      {subjectSources.length
+                        ? <ul className="mt-3 space-y-2">{subjectSources.map((source) => <li key={source.id}>
+                          <a href={source.url} target="_blank" rel="noreferrer" className="text-sm font-semibold text-primary underline decoration-primary/30 underline-offset-2 hover:decoration-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">{source.title}</a>
+                        </li>)}</ul>
+                        : <p className="mt-2 text-sm text-slate-500">No source links are attached to this topic.</p>}
+                    </article>
+                  })}
+                </div>}
+                <h3 className="mb-3 text-lg font-bold text-text">All linked materials</h3>
+                <ul className="grid gap-3 md:grid-cols-2">
+                  {referenceSources.map((source) => <li key={source.id} className="rounded-2xl border border-slate-200 bg-surface p-4 shadow-sm sm:p-5">
+                    <a
+                      href={source.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="font-bold text-primary underline decoration-primary/30 underline-offset-2 hover:decoration-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                    >
+                      {source.title}
+                    </a>
+                    {source.description && <p className="mt-2 text-sm leading-6 text-slate-600">{source.description}</p>}
+                  </li>)}
+                </ul>
+              </>
+              : <p className="rounded-2xl border border-slate-200 bg-surface p-5 text-slate-500">No external sources are linked to this material.</p>}
           </section>}
         </div>
       </div>

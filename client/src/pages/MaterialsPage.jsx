@@ -79,7 +79,7 @@ export default function MaterialsPage({ uploadedMaterials = [], onReviewerCreate
         <p className="mb-3 text-small font-bold uppercase tracking-[0.18em] text-primary">StudyLens PDF reviewer</p>
         <h1 className="text-heading tracking-tight text-text">Turn your PDFs into focused study guides.</h1>
         <p className="mt-4 text-body text-slate-500">{isMockApiEnabled
-          ? 'Create a reviewer from your material, or explore built-in CPALE, Accounting, Economics, and business fundamentals samples.'
+          ? 'Create a reviewer from your material, or explore six subject-specific CPALE study guides alongside Accounting, Economics, and business fundamentals samples.'
           : 'Analyze your PDF for specific findings, key terms, and practice questions with page citations and source excerpts.'}</p>
       </div>
 
